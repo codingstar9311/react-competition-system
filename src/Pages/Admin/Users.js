@@ -32,7 +32,7 @@ const Users = (props) => {
 
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
-    const [error, setError] = useState('ddd');
+    const [error, setError] = useState('');
 
     const classes = useStyles();
     const [page, setPage] = React.useState(0);
@@ -53,80 +53,84 @@ const Users = (props) => {
 
     const onAddUser = (event) => {
         event.preventDefault();
+
+
     };
 
-    const dialog = (
-        <Dialog open={openDialog}
-                fullWidth={'md'}
-                disableBackdropClick={true}
-                maxWidth={'md'}
-                onClose={() => onToggleDialog()}
-                aria-labelledby="form-dialog-title">
-            <form onSubmit={onAddUser}>
-                <DialogTitle className='text-center'>Add New User</DialogTitle>
-                <DialogContent>
-                    <div className='row py-2 align-items-center justify-content-center'>
-                        <div className='col-5 px-2'>
-                            <TextField
-                                autoFocus
-                                label="Full Name"
-                                type="full_name"
-                                fullWidth
-                                required
-                            />
-                        </div>
-                        <div className='col-5 px-2 text-center'>
-                            <TextField
-                                autoFocus
-                                label="Grade"
-                                type="number"
-                                fullWidth
-                                required
-                            />
-                        </div>
+    const dialog = (<Dialog open={openDialog}
+                            fullWidth={true}
+                            maxWidth={'md'}
+                            onClose={(event, reason) => {
+                                if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                                    return;
+                                }
+                                onToggleDialog()
+                            }}
+                            aria-labelledby="form-dialog-title">
+        <form onSubmit={onAddUser}>
+            <DialogTitle className='text-center'>Add New User</DialogTitle>
+            <DialogContent>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-5 px-2'>
+                        <TextField
+                            autoFocus
+                            label="Full Name"
+                            type="full_name"
+                            fullWidth
+                            required
+                        />
                     </div>
-                    <div className='row py-2 align-items-center justify-content-center'>
-                        <div className='col-5 px-2'>
-                            <TextField
-                                autoFocus
-                                label="Email Address"
-                                type="email"
-                                fullWidth={true}
-                                required
-                            />
-                        </div>
-                        <div className='col-5 px-2 text-center'>
-                            <TextField
-                                autoFocus
-                                label="Password"
-                                type="password"
-                                min={0}
-                                fullWidth
-                                required
-                            />
-                        </div>
+                    <div className='col-5 px-2 text-center'>
+                        <TextField
+                            autoFocus
+                            label="Grade"
+                            type="number"
+                            fullWidth
+                            required
+                        />
                     </div>
-                    <div className='row justify-content-center'>
-                        <div className='col-10'>
-                            {
-                                error != '' ?
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-5 px-2'>
+                        <TextField
+                            autoFocus
+                            label="Email Address"
+                            type="email"
+                            fullWidth={true}
+                            required
+                        />
+                    </div>
+                    <div className='col-5 px-2 text-center'>
+                        <TextField
+                            autoFocus
+                            label="Password"
+                            type="password"
+                            min={0}
+                            fullWidth
+                            required
+                        />
+                    </div>
+                </div>
+                <div className='row justify-content-center'>
+                    <div className='col-10'>
+                        {
+                            error != '' ?
                                 <Alert severity='error' onClose={() => setError('')}>{error}</Alert>
                                 : ''
-                            }
-                        </div>
+                        }
                     </div>
-                </DialogContent>
-                <DialogActions className='justify-content-center py-3'>
-                    <Button onClick={onToggleDialog} style={{minWidth: '100px'}} size='large' variant='contained' color="secondary">
-                        Cancel
-                    </Button>
-                    <Button type='submit' size='large' style={{minWidth: '100px'}}  variant='contained'  color="primary">
-                        Save
-                    </Button>
-                </DialogActions>
-            </form>
-        </Dialog>
-    );
+                </div>
+            </DialogContent>
+            <DialogActions className='justify-content-center py-3'>
+                <Button onClick={onToggleDialog} style={{minWidth: '100px'}} size='large' variant='contained' color="secondary">
+                    Cancel
+                </Button>
+                <Button type='submit' size='large' style={{minWidth: '100px'}}  variant='contained'  color="primary">
+                    Save
+                </Button>
+            </DialogActions>
+        </form>
+    </Dialog>);
 
     return (
         <>
