@@ -9,7 +9,7 @@ import {auth, getUserDocument} from "../../firebase";
 import Problems from "./Problems";
 import Competitions from "./Competitions";
 
-const Admin = (props) => {
+const AdminLayout = (props) => {
 
     useEffect(() => {
         auth.onAuthStateChanged(async user => {
@@ -40,4 +40,4 @@ const Admin = (props) => {
     )
 };
 
-export default Admin;
+export default AdminLayout;

@@ -9,7 +9,7 @@ import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {auth, generateUserDocument} from "../../firebase";
+import {admin, adminCreateUser, auth, generateUserDocument} from "../../firebase";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -33,12 +33,14 @@ const Users = (props) => {
 
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
-    const [error, setError] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const [fullName, setFullName] = useState('');
     const [grade, setGrade] = useState(0);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const [loading, setLoading] = useState(false);
 
     const classes = useStyles();
     const [page, setPage] = React.useState(0);
@@ -60,22 +62,28 @@ const Users = (props) => {
     const onAddUser = (event) => {
         event.preventDefault();
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .then(async (user) => {
+        setLoading(true);
+
+        admin.auth().createUserWithEmailAndPassword(email, password)
+            .then(async (result) => {
                 let userInfo = {
                     fullName,
                     password,
                     grade,
                     email,
-                    uid: user.uid
+                    uid: result.user.uid
                 };
-                let newUser = await generateUserDocument(user, userInfo);
+                let newUser = await adminCreateUser(userInfo.uid, userInfo);
                 if (newUser) {
                     toast.success('Successfully added!');
                 }
             })
             .catch(error => {
-                setError(error.message);
+                setErrorMessage(error.message);
+                console.log('catch');
+            })
+            .finally(() => {
+                setLoading(false);
             })
     };
 
@@ -89,7 +97,7 @@ const Users = (props) => {
                                 onToggleDialog()
                             }}
                             aria-labelledby="form-dialog-title">
-        <form onSubmit={onAddUser}>
+        <form onSubmit={onAddUser} autoComplete="off">
             <DialogTitle className='text-center'>Add New User</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
@@ -98,6 +106,7 @@ const Users = (props) => {
                             autoFocus
                             label="Full Name"
                             type="full_name"
+                            onChange={(e) => setFullName(e.target.value)}
                             fullWidth
                             required
                         />
@@ -107,6 +116,7 @@ const Users = (props) => {
                             autoFocus
                             label="Grade"
                             type="number"
+                            onChange={(e) => setGrade(e.target.value)}
                             fullWidth
                             required
                         />
@@ -117,6 +127,8 @@ const Users = (props) => {
                         <TextField
                             autoFocus
                             label="Email Address"
+                            autoComplete="false"
+                            onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             fullWidth={true}
                             required
@@ -127,6 +139,7 @@ const Users = (props) => {
                             autoFocus
                             label="Password"
                             type="password"
+                            onChange={(e) => setPassword(e.target.value)}
                             min={0}
                             fullWidth
                             required
@@ -136,8 +149,8 @@ const Users = (props) => {
                 <div className='row justify-content-center'>
                     <div className='col-10'>
                         {
-                            error != '' ?
-                                <Alert severity='error' onClose={() => setError('')}>{error}</Alert>
+                            errorMessage != '' ?
+                                <Alert severity='error' onClose={() => setErrorMessage('')}>{errorMessage}</Alert>
                                 : ''
                         }
                     </div>
