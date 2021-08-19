@@ -16,7 +16,7 @@ const Admin = (props) => {
         if (curUser == null) {
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    props.history.push('/admin/dashboard');
+                    props.history.push('/admin/users');
                 } else {
                     props.history.push('/login');
                 }
