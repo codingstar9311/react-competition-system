@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Menu, MenuItem, ProSidebar, SubMenu, SidebarHeader,SidebarContent} from "react-pro-sidebar";
 import {HearingTwoTone} from "@material-ui/icons";
-import Sidebar from '../../Components/Sidebar';
+import Sidebar from '../../Components/Admin/Sidebar';
 import {Router, Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import Users from "./Users";
