@@ -9,6 +9,7 @@ import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
+import TableSortLabel from "@material-ui/core/TableSortLabel";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,11 +24,11 @@ const useStyles = makeStyles((theme) => ({
 const Users = (props) => {
 
     const columns = [
-        { id: 'full_name', label: 'Name', minWidth: 170 },
-        { id: '', label: 'Name', minWidth: 170 },
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'name', label: 'Name', minWidth: 170 },
+        { id: 'fullName', label: 'Name', minWidth: 170 },
+        { id: 'email', label: 'Email', minWidth: 170 },
+        { id: 'password', label: 'Password', minWidth: 170 },
+        { id: 'grade', label: 'Grade', minWidth: 170 },
+        { id: 'action', label: 'Action', width: 100 },
     ];
 
     const [rows, setRows] = useState([]);
@@ -48,6 +49,30 @@ const Users = (props) => {
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
+
+    const onLoadUsers = () => {
+        firestore.collection('users').orderBy('fullName', 'asc')
+            .get()
+            .then(usersRef => {
+                let tempUsers = usersRef.docs.map(item => {
+                    if (item.exists) {
+                        return {
+                            uid: item.uid,
+                            ...item.data()
+                        }
+                    }
+                });
+
+                setRows([...tempUsers]);
+            })
+            .catch(error => {
+                toast.error(error.message);
+            });
+    };
+
+    useEffect(() => {
+        onLoadUsers();
+    }, []);
 
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(+event.target.value);
@@ -86,6 +111,7 @@ const Users = (props) => {
             .add(userInfo)
             .then(docRef => {
                 toast.success('Successfully Added!');
+                onLoadUsers();
                 onToggleDialog();
             })
             .catch(error => {
@@ -179,7 +205,10 @@ const Users = (props) => {
     return (
         <>
             {
-                <ToastContainer position='top-center' traggle/>
+                <ToastContainer
+                    position='top-center'
+                    autoClose={3000}
+                    traggle/>
             }
             {
                 dialog
@@ -221,9 +250,9 @@ const Users = (props) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, key) => {
                                     return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                        <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                             {columns.map((column, key) => {
                                                 const value = row[column.id];
                                                 return (
