@@ -19,6 +19,8 @@ export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 export const functions = firebase.functions();
 
+export const sendEmail = firebase.functions().httpsCallable('sendEmail');
+
 export const getUserDocument = async uid => {
     if (!uid)
         return null;
@@ -47,18 +49,22 @@ export const generateUserDocument = async (uid, userInfo) => {
     return getUserDocument(uid);
 };
 
-export const adminCreateUser = async (uid, userInfo) => {
-    if (!uid)
-        return;
-    const userDoc = firestore.doc(`users/${uid}`);
-    const snapshot = await userDoc.get();
-    if (!snapshot.exists) {
-        try {
-            await userDoc.set({...userInfo});
-        } catch (error) {
-            console.error("Error creating user document", error);
-        }
-    }
-    return getUserDocument(uid);
-};
+
+export const createUserAuth = functions.httpsCallable('httpsCreateUser');
+
+// export const adminCreateUser = async (userInfo) => {
+//
+//     const userDoc = firestore.collection('users');
+//     const snapshot = await userDoc.add(userInfo);
+//     if (!snapshot.exists) {
+//         try {
+//             await userDoc.set({...userInfo});
+//         } catch (error) {
+//             console.error("Error creating user document", error);
+//         }
+//     }
+//     return getUserDocument(uid);
+// };
+
+
 

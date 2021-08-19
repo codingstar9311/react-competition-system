@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
-import AdminTitle from "../../Components/Admin/AdminTitle";
 import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField
 } from "@material-ui/core";
@@ -9,7 +8,7 @@ import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {admin, adminCreateUser, auth, generateUserDocument} from "../../firebase";
+import {firestore} from "../../firebase";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -59,32 +58,42 @@ const Users = (props) => {
         setOpenDialog(!openDialog);
     };
 
-    const onAddUser = (event) => {
+    const onAddUser = async (event) => {
         event.preventDefault();
 
         setLoading(true);
 
-        admin.auth().createUserWithEmailAndPassword(email, password)
-            .then(async (result) => {
-                let userInfo = {
-                    fullName,
-                    password,
-                    grade,
-                    email,
-                    uid: result.user.uid
-                };
-                let newUser = await adminCreateUser(userInfo.uid, userInfo);
-                if (newUser) {
-                    toast.success('Successfully added!');
-                }
+        let userInfo = {
+            fullName,
+            email,
+            password,
+            grade,
+        };
+
+        let results = await firestore.collection('users')
+            .where('email', "==", email)
+            .get();
+
+        console.log(results.docs);
+
+        if (results.docs && results.docs.length > 0) {
+            setErrorMessage('Current email already exists!');
+            setLoading(false);
+            return;
+        }
+
+        firestore.collection('users')
+            .add(userInfo)
+            .then(docRef => {
+                toast.success('Successfully Added!');
+                onToggleDialog();
             })
             .catch(error => {
-                setErrorMessage(error.message);
-                console.log('catch');
+                setErrorMessage(error);
             })
             .finally(() => {
                 setLoading(false);
-            })
+            });
     };
 
     const dialog = (<Dialog open={openDialog}
