@@ -1,8 +1,6 @@
 import React, {useState} from "react";
-import {auth} from "../../firebase";
+import {auth, getUserDocument} from "../../firebase";
 import {Button, TextField} from "@material-ui/core";
-
-import {getUserDocument} from '../../firebase';
 
 import logo from '../../Assets/Images/logo.png';
 const title = 'Math Tournament';

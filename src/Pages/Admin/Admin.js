@@ -5,23 +5,25 @@ import Sidebar from '../../Components/Admin/Sidebar';
 import {Router, Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import Users from "./Users";
-import {auth} from "../../firebase";
+import {auth, getUserDocument} from "../../firebase";
 import Problems from "./Problems";
 import Competitions from "./Competitions";
 
 const Admin = (props) => {
 
     useEffect(() => {
-        let curUser = localStorage.getItem('cur_user');
-        if (curUser == null) {
-            auth.onAuthStateChanged(user => {
-                if (user) {
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                let curUser = await getUserDocument(user.uid);
+                if (curUser.type == 'admin') {
                     props.history.push('/admin/users');
                 } else {
-                    props.history.push('/login');
+                    props.history.push('/user/dashboard');
                 }
-            });
-        }
+            } else {
+                props.history.push('/login');
+            }
+        });
     }, [auth]);
     return (
         <>

@@ -9,6 +9,7 @@ import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {auth, generateUserDocument} from "../../firebase";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -34,6 +35,11 @@ const Users = (props) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [error, setError] = useState('');
 
+    const [fullName, setFullName] = useState('');
+    const [grade, setGrade] = useState(0);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
     const classes = useStyles();
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -54,7 +60,23 @@ const Users = (props) => {
     const onAddUser = (event) => {
         event.preventDefault();
 
-
+        auth.createUserWithEmailAndPassword(email, password)
+            .then(async (user) => {
+                let userInfo = {
+                    fullName,
+                    password,
+                    grade,
+                    email,
+                    uid: user.uid
+                };
+                let newUser = await generateUserDocument(user, userInfo);
+                if (newUser) {
+                    toast.success('Successfully added!');
+                }
+            })
+            .catch(error => {
+                setError(error.message);
+            })
     };
 
     const dialog = (<Dialog open={openDialog}

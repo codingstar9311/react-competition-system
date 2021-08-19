@@ -12,7 +12,7 @@ import Dashboard from "./Pages/Admin/Dashboard";
 import Login from "./Pages/Auth/Login";
 import Register from "./Pages/Auth/Register";
 import {createBrowserHistory} from "history";
-import {auth} from "./firebase";
+import {auth, getUserDocument} from "./firebase";
 import './App.css';
 import Admin from "./Pages/Admin/Admin";
 

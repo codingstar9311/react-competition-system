@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {generateUserDocument} from "../../firebase";
+// import {generateUserDocument} from "../../firebase";
 import {auth} from "../../firebase";
 
 const Register = () => {
@@ -11,7 +11,7 @@ const Register = () => {
         event.preventDefault();
         try{
             const {user} = await auth.createUserWithEmailAndPassword(email, password);
-            generateUserDocument(user, {displayName});
+            // generateUserDocument(user, {displayName});
         }
         catch(error){
             setError('Error Signing up with email and password');
