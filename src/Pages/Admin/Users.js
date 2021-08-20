@@ -20,7 +20,6 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 import GradeButton from "../../Components/Admin/GradeButton";
-import CompetitionItem from "../../Components/Admin/CompetitionItem";
 
 const useStyles = makeStyles((theme) => ({
     root: {
