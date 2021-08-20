@@ -47,13 +47,20 @@ const Users = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
-    const [rows, setRows] = useState([]);
+    const [rows, setRows] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+    // table setting
+    const [order, setOrder] = React.useState('asc');
+    const [orderBy, setOrderBy] = React.useState('desc');
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    // //////
 
     const [searchText, setSearchText] = useState('');
     const [changeTitle, setChangeTitle] = useState('Add New User');
@@ -66,8 +73,7 @@ const Users = (props) => {
     const [loading, setLoading] = useState(false);
 
     const classes = useStyles();
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -234,6 +240,32 @@ const Users = (props) => {
             });
     };
 
+    const descendingComparator = (a, b, orderBy) => {
+        if (b[orderBy] < a[orderBy]) {
+            return -1;
+        }
+        if (b[orderBy] > a[orderBy]) {
+            return 1;
+        }
+        return 0;
+    };
+
+    const getComparator = (order, orderBy) => {
+        return order === 'desc'
+            ? (a, b) => descendingComparator(a, b, orderBy)
+            : (a, b) => -descendingComparator(a, b, orderBy);
+    };
+
+    const stableSort = (array, comparator) => {
+        const stabilizedThis = array.map((el, index) => [el, index]);
+        stabilizedThis.sort((a, b) => {
+            const order = comparator(a[0], b[0]);
+            if (order !== 0) return order;
+            return a[1] - b[1];
+        });
+        return stabilizedThis.map((el) => el[0]);
+    };
+
     const dialog = (<Dialog open={openDialog}
                             fullWidth={true}
                             maxWidth={'md'}
@@ -348,7 +380,7 @@ const Users = (props) => {
                     <TablePagination
                         rowsPerPageOptions={[10, 25, 100]}
                         component="div"
-                        count={rows.length}
+                        count={rows == null ? 0 : rows.length}
                         rowsPerPage={rowsPerPage}
                         page={page}
                         onPageChange={handleChangePage}
@@ -399,51 +431,70 @@ const Users = (props) => {
                                             style={{ minWidth: column.minWidth}}
                                             className={column.id == 'action' ? 'text-center' : ''}
                                         >
+                                            <TableSortLabel active={orderBy === column.id}
+                                                            direction={orderBy == column.id ? order : 'asc'}
+                                                            onClick={() => {
+                                                                const isAsc = orderBy === column.id && order === 'asc';
+                                                                setOrder(isAsc ? 'desc' : 'asc');
+                                                                setOrderBy(column.id);
+                                                            }}
+                                            >
                                             {column.label}
+                                            </TableSortLabel>
                                         </TableCell>
                                     ))}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, key) => {
-                                    return (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                            {columns.map((column, key) => {
-                                                const value = row[column.id];
+                                {
+                                    rows != null && stableSort(rows, getComparator(order, orderBy))
+                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        .map((row, key) => {
+                                            return (
+                                                <TableRow hover role="checkbox" tabIndex={-1} key={key}>
+                                                    {columns.map((column, key) => {
+                                                        const value = row[column.id];
 
-                                                if (column.id != 'action') {
-                                                    return (
-                                                        <TableCell key={`body_${key}`} align={column.align}>
-                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                        </TableCell>
-                                                    );
-                                                } else {
-                                                    return (
-                                                        <TableCell key={`body_${key}`} className='text-center'>
-                                                            <IconButton color='primary' onClick={() => onEditUser(row)}>
-                                                                <EditIcon/>
-                                                            </IconButton>
-                                                            &nbsp;
-                                                            <IconButton color='secondary' onClick={() => {
-                                                                setSelectedId(row.id);
-                                                                setOpenDeleteDialog(true);
-                                                            }}>
-                                                                <DeleteIcon/>
-                                                            </IconButton>
-                                                        </TableCell>
-                                                    );
-                                                }
-                                            })}
-                                        </TableRow>
-                                    );
+                                                        if (column.id != 'action') {
+                                                            return (
+                                                                <TableCell key={`body_${key}`} align={column.align}>
+                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                </TableCell>
+                                                            );
+                                                        } else {
+                                                            return (
+                                                                <TableCell key={`body_${key}`} className='text-center'>
+                                                                    <IconButton color='primary' onClick={() => onEditUser(row)}>
+                                                                        <EditIcon/>
+                                                                    </IconButton>
+                                                                    &nbsp;
+                                                                    <IconButton color='secondary' onClick={() => {
+                                                                        setSelectedId(row.id);
+                                                                        setOpenDeleteDialog(true);
+                                                                    }}>
+                                                                        <DeleteIcon/>
+                                                                    </IconButton>
+                                                                </TableCell>
+                                                            );
+                                                        }
+                                                    })}
+                                                </TableRow>
+                                            );
                                 })}
+                                {
+                                    rows != null && rows.length < 1 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} align="center">
+                                                There is no data....
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : null
+                                }
                             </TableBody>
                         </Table>
                     </TableContainer>
-
                 </div>
             </div>
-
         </div>
     )
 };
