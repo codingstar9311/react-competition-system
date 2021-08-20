@@ -12,6 +12,7 @@ import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
 import {Delete as DeleteIcon, Edit as EditIcon} from "@material-ui/icons";
+import Fab from "@material-ui/core/Fab";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -131,8 +132,13 @@ const Users = (props) => {
             });
     };
 
-    const onEditUser = (user_id) => {
-        alert(JSON.stringify(user_id));
+    const onEditUser = (row) => {
+        setFullName(row.fullName);
+        setEmail(row.email);
+        setPassword(row.email);
+        setGrade(row.grade);
+
+        onToggleDialog();
     };
 
     const onDeleteUser = (user_id) => {
@@ -158,6 +164,7 @@ const Users = (props) => {
                             autoFocus
                             label="Full Name"
                             type="full_name"
+                            value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             fullWidth
                             required
@@ -168,6 +175,7 @@ const Users = (props) => {
                             autoFocus
                             label="Grade"
                             type="number"
+                            value={grade}
                             onChange={(e) => setGrade(e.target.value)}
                             fullWidth
                             required
@@ -180,6 +188,7 @@ const Users = (props) => {
                             autoFocus
                             label="Email Address"
                             autoComplete="false"
+                            value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             fullWidth={true}
@@ -191,6 +200,7 @@ const Users = (props) => {
                             autoFocus
                             label="Password"
                             type="password"
+                            value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             min={0}
                             fullWidth
@@ -259,7 +269,8 @@ const Users = (props) => {
                                         <TableCell
                                             key={key}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth }}
+                                            style={{ minWidth: column.minWidth}}
+                                            className={column.id == 'action' ? 'text-center' : ''}
                                         >
                                             {column.label}
                                         </TableCell>
@@ -281,10 +292,11 @@ const Users = (props) => {
                                                     );
                                                 } else {
                                                     return (
-                                                        <TableCell key={`body_${key}`}>
-                                                            <IconButton color='primary' onClick={() => onEditUser(row.id)}>
+                                                        <TableCell key={`body_${key}`} className='text-center'>
+                                                            <IconButton color='primary' onClick={() => onEditUser(row)}>
                                                                 <EditIcon/>
                                                             </IconButton>
+                                                            &nbsp;
                                                             <IconButton color='secondary' onClick={() => onDeleteUser(row.id)}>
                                                                 <DeleteIcon/>
                                                             </IconButton>
