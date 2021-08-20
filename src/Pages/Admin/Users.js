@@ -33,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 const Users = (props) => {
 
     const columns = [
+        { id: 'no', label: 'No', width: 60 },
         { id: 'fullName', label: 'Name', minWidth: 170 },
         { id: 'email', label: 'Email', minWidth: 170 },
         { id: 'password', label: 'Password', minWidth: 170 },
@@ -84,6 +85,7 @@ const Users = (props) => {
             .get()
             .then(usersRef => {
                 let tempUsers = [];
+                let no = 1;
                 usersRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
@@ -91,15 +93,20 @@ const Users = (props) => {
                             if (searchVal != '') {
                                 if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
                                     tempUsers.push({
+                                        no,
                                         id: item.id,
                                         ...data
-                                    })
+                                    });
+
+                                    no ++;
                                 }
                             } else {
                                 tempUsers.push({
+                                    no,
                                     id: item.id,
                                     ...data
-                                })
+                                });
+                                no++;
                             }
                         }
                     }
@@ -429,7 +436,7 @@ const Users = (props) => {
                                             key={key}
                                             align={column.align}
                                             style={{ minWidth: column.minWidth}}
-                                            className={column.id == 'action' ? 'text-center' : ''}
+                                            className={column.id == 'action' ? 'text-right' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
                                                             direction={orderBy == column.id ? order : 'asc'}
@@ -463,7 +470,7 @@ const Users = (props) => {
                                                             );
                                                         } else {
                                                             return (
-                                                                <TableCell key={`body_${key}`} className='text-center'>
+                                                                <TableCell key={`body_${key}`} className='text-right'>
                                                                     <IconButton color='primary' onClick={() => onEditUser(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>

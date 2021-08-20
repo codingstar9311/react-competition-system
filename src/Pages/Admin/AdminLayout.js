@@ -1,13 +1,12 @@
-import React, {useEffect, useState} from 'react';
-import {Menu, MenuItem, ProSidebar, SubMenu, SidebarHeader,SidebarContent} from "react-pro-sidebar";
-import {HearingTwoTone} from "@material-ui/icons";
+import React, {useEffect} from 'react';
 import Sidebar from '../../Components/Admin/Sidebar';
-import {Router, Route, Switch} from 'react-router-dom';
+import {Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import Users from "./Users";
 import {auth, getUserDocument} from "../../firebase";
 import Problems from "./Problems";
 import Competitions from "./Competitions";
+import CompetitionResults from "./CompetitionResults";
 
 const AdminLayout = (props) => {
 
@@ -34,6 +33,7 @@ const AdminLayout = (props) => {
                     <Route path={'/admin/users'} component={Users}/>
                     <Route path={'/admin/problems'} component={Problems}/>
                     <Route path={'/admin/competitions'} component={Competitions}/>
+                    <Route path={'/admin/competition-results'} component={CompetitionResults}/>
                 </Switch>
             </div>
         </>

@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
-import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
-    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
+import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles, CircularProgress,
+    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon, Visibility, VisibilityOff} from "@material-ui/icons";
@@ -27,16 +27,17 @@ const useStyles = makeStyles((theme) => ({
     container: {
         height: 'calc(100% - 10px)',
     }
+
 }));
 
-const Problems = (props) => {
+const CompetitionResults = (props) => {
 
     const columns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'fullName', label: 'Name', minWidth: 170 },
-        { id: 'guestion', label: 'Email', minWidth: 170 },
-        { id: 'answers', label: 'Password', minWidth: 170 },
-        { id: 'correct_answers', label: 'Grade', minWidth: 170 },
+        { id: 'email', label: 'Email', minWidth: 170 },
+        { id: 'password', label: 'Password', minWidth: 170 },
+        { id: 'grade', label: 'Grade', minWidth: 170 },
         { id: 'action', label: 'Action', maxWidth: 60 },
     ];
 
@@ -63,7 +64,7 @@ const Problems = (props) => {
     // //////
 
     const [searchText, setSearchText] = useState('');
-    const [changeTitle, setChangeTitle] = useState('Add New Problem');
+    const [changeTitle, setChangeTitle] = useState('Add New User');
     const [selectedId, setSelectedId] = useState('');
     const [fullName, setFullName] = useState('');
     const [grade, setGrade] = useState(0);
@@ -79,38 +80,39 @@ const Problems = (props) => {
         setPage(newPage);
     };
 
-    const onLoadProblems = (searchVal = '') => {
+    const onLoadUsers = (searchVal = '') => {
         firestore.collection('users').orderBy('fullName', 'asc')
             .get()
-            .then(problemRef => {
-                let tempProblems = [];
+            .then(usersRef => {
+                let tempUsers = [];
                 let no = 1;
-                problemRef.docs.forEach(item => {
+                usersRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
                         if (data.deleted != true && data.type != 'admin') {
                             if (searchVal != '') {
                                 if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
-                                    tempProblems.push({
+                                    tempUsers.push({
                                         no,
                                         id: item.id,
                                         ...data
                                     });
+
                                     no ++;
                                 }
                             } else {
-                                tempProblems.push({
+                                tempUsers.push({
                                     no,
                                     id: item.id,
                                     ...data
                                 });
-                                no ++;
+                                no++;
                             }
                         }
                     }
                 });
 
-                setRows([...tempProblems]);
+                setRows([...tempUsers]);
                 setPage(0);
 
             })
@@ -120,7 +122,7 @@ const Problems = (props) => {
     };
 
     useEffect(() => {
-        onLoadProblems();
+        onLoadUsers();
     }, []);
 
     const handleChangeRowsPerPage = (event) => {
@@ -132,12 +134,12 @@ const Problems = (props) => {
         setOpenDialog(!openDialog);
     };
 
-    const onSaveProblem = async (event) => {
+    const onSaveUser = async (event) => {
         event.preventDefault();
 
         setLoading(true);
 
-        let problemInfo = {
+        let userInfo = {
             fullName,
             email,
             password,
@@ -155,10 +157,10 @@ const Problems = (props) => {
                 return;
             }
             firestore.collection('users')
-                .add(problemInfo)
+                .add(userInfo)
                 .then(docRef => {
                     toast.success('Successfully Added!');
-                    onLoadProblems();
+                    onLoadUsers();
                     onToggleDialog();
                 })
                 .catch(error => {
@@ -171,14 +173,14 @@ const Problems = (props) => {
             firestore.collection('users')
                 .doc(selectedId)
                 .set({
-                    ...problemInfo
+                    ...userInfo
                 })
                 .then(docRef => {
                     toast.success('Successfully Updated!');
                     let curRows = rows;
                     curRows = curRows.map(item => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, ...problemInfo};
+                            item = {id: selectedId, ...userInfo};
                         }
 
                         return item;
@@ -238,11 +240,11 @@ const Problems = (props) => {
 
                 setRows([...curRows]);
             }).catch(error => {
-            toast.error(error.message);
-        }).finally(() => {
-            setDeleteLoading(false);
-            setOpenDeleteDialog(false);
-        });
+                toast.error(error.message);
+            }).finally(() => {
+                setDeleteLoading(false);
+                setOpenDeleteDialog(false);
+            });
     };
 
     const descendingComparator = (a, b, orderBy) => {
@@ -281,7 +283,7 @@ const Problems = (props) => {
                                 onToggleDialog()
                             }}
                             aria-labelledby="form-dialog-title">
-        <form onSubmit={onSaveProblem} autoComplete="off">
+        <form onSubmit={onSaveUser} autoComplete="off">
             <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
@@ -379,7 +381,7 @@ const Problems = (props) => {
             <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
-                    <h2 className='my-0'>Problem List</h2>
+                    <h2 className='my-0'>User List</h2>
                 </div>
                 <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination
@@ -401,7 +403,7 @@ const Problems = (props) => {
                             onChange={(e) => setSearchText(e.target.value)}
                             onKeyUp={e => {
                                 if (e.key == 'Enter') {
-                                    onLoadProblems(searchText);
+                                    onLoadUsers(searchText);
                                 }
                             }}
                             endAdornment={
@@ -409,7 +411,7 @@ const Problems = (props) => {
                                     <IconButton
                                         aria-label="toggle password visibility"
                                         onClick={() => {
-                                            onLoadProblems(searchText)
+                                            onLoadUsers(searchText)
                                         }}
                                         edge="end"
                                     >
@@ -444,7 +446,7 @@ const Problems = (props) => {
                                                                 setOrderBy(column.id);
                                                             }}
                                             >
-                                                {column.label}
+                                            {column.label}
                                             </TableSortLabel>
                                         </TableCell>
                                     ))}
@@ -485,7 +487,7 @@ const Problems = (props) => {
                                                     })}
                                                 </TableRow>
                                             );
-                                        })}
+                                })}
                                 {
                                     rows != null && rows.length < 1 ? (
                                         <TableRow>
@@ -503,4 +505,4 @@ const Problems = (props) => {
         </div>
     )
 };
-export default Problems;
+export default CompetitionResults;

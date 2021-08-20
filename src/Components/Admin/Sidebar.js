@@ -4,6 +4,7 @@ import {Link} from "react-router-dom";
 import {Dashboard, People, Menu as MenuIcon, ExitToApp, Close, ContactSupport, Business} from "@material-ui/icons/index";
 import 'react-pro-sidebar/dist/css/styles.css';
 import {auth} from "../../firebase";
+import {BusinessCenter} from "@material-ui/icons";
 
 const Sidebar = (props) => {
     const [collapsed, setCollapsed] = useState(false);
@@ -19,7 +20,8 @@ const Sidebar = (props) => {
                     <MenuItem icon={<Dashboard />}>Dashboard <Link to={'/admin/dashboard'}/></MenuItem>
                     <MenuItem icon={<People />}>Users <Link to={'/admin/users'}/></MenuItem>
                     <MenuItem icon={<ContactSupport />}>Problems <Link to={'/admin/problems'}/></MenuItem>
-                    <MenuItem icon={<Business />}>Competion Infomations <Link to={'/admin/competitions'}/></MenuItem>
+                    <MenuItem icon={<Business />}>Competition Informations <Link to={'/admin/competitions'}/></MenuItem>
+                    <MenuItem icon={<BusinessCenter />}>Competions Results <Link to={'/admin/competition-results'}/></MenuItem>
                 </Menu>
             </SidebarContent>
             <SidebarFooter>
