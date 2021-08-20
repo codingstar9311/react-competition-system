@@ -291,7 +291,7 @@ const Users = (props) => {
                         <TextField
                             autoFocus
                             label="Full Name"
-                            type="full_name"
+                            type="text"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             fullWidth

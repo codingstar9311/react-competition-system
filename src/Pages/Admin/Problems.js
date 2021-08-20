@@ -47,6 +47,8 @@ const Problems = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
+    const [answers, setAnswers] = useState([]);
+
     const [rows, setRows] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -65,9 +67,9 @@ const Problems = (props) => {
     const [searchText, setSearchText] = useState('');
     const [changeTitle, setChangeTitle] = useState('Add New Problem');
     const [selectedId, setSelectedId] = useState('');
-    const [fullName, setFullName] = useState('');
+    const [problemName, setProblemName] = useState('');
     const [grade, setGrade] = useState(0);
-    const [email, setEmail] = useState('');
+    const [email, setContent] = useState('');
     const [password, setPassword] = useState('');
 
     const [loading, setLoading] = useState(false);
@@ -138,7 +140,7 @@ const Problems = (props) => {
         setLoading(true);
 
         let problemInfo = {
-            fullName,
+            fullName: problemName,
             email,
             password,
             grade,
@@ -196,11 +198,11 @@ const Problems = (props) => {
         }
     };
 
-    const onEditUser = (row) => {
+    const onEditProblem = (row) => {
         setSelectedId(row.id);
 
-        setFullName(row.fullName);
-        setEmail(row.email);
+        setProblemName(row.fullName);
+        setContent(row.email);
         setPassword(row.password);
         setGrade(row.grade);
 
@@ -209,21 +211,21 @@ const Problems = (props) => {
         onToggleDialog();
     };
 
-    const onAddUser = () => {
+    const onAddProblem = () => {
         setSelectedId('');
-        setFullName('');
-        setEmail('');
+        setProblemName('');
+        setContent('');
         setPassword('');
         setGrade('');
 
-        setChangeTitle('Add New User');
+        setChangeTitle('Add New Problem');
         onToggleDialog();
     };
 
-    const onDeleteUser = async (user_id) => {
+    const onDeleteProblem = async (problem_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('users').doc(user_id).set({
+        firestore.collection('users').doc(problem_id).set({
             deleted: true
         }, {merge: true})
             .then(() => {
@@ -288,10 +290,10 @@ const Problems = (props) => {
                     <div className='col-5 px-2'>
                         <TextField
                             autoFocus
-                            label="Full Name"
-                            type="full_name"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
+                            label="Problem Name"
+                            type="text"
+                            value={problemName}
+                            onChange={(e) => setProblemName(e.target.value)}
                             fullWidth
                             required
                         />
@@ -315,7 +317,7 @@ const Problems = (props) => {
                             label="Email Address"
                             autoComplete="false"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setContent(e.target.value)}
                             type="email"
                             fullWidth={true}
                             required
@@ -376,7 +378,7 @@ const Problems = (props) => {
             {
                 dialog
             }
-            <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
+            <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>Problem List</h2>
@@ -420,7 +422,7 @@ const Problems = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' onClick={() => onAddUser()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
+                    <Button variant='contained' onClick={() => onAddProblem()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
                 </div>
             </div>
             <div className='row'>
@@ -469,7 +471,7 @@ const Problems = (props) => {
                                                         } else {
                                                             return (
                                                                 <TableCell key={`body_${key}`} className='text-right'>
-                                                                    <IconButton color='primary' onClick={() => onEditUser(row)}>
+                                                                    <IconButton color='primary' onClick={() => onEditProblem(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>
                                                                     &nbsp;
