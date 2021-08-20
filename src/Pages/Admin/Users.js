@@ -19,6 +19,7 @@ import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
+import GradeButton from "../../Components/Admin/GradeButton";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -299,15 +300,22 @@ const Users = (props) => {
                         />
                     </div>
                     <div className='col-5 px-2 text-center'>
-                        <TextField
-                            autoFocus
-                            label="Grade"
-                            type="number"
-                            value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
-                            fullWidth
-                            required
-                        />
+                        <div className='row align-items-center'>
+                            <div className='col-lg-3 col-sm-12 text-left'>
+                                Grade
+                            </div>
+                            <div className='col-lg-9 col-sm-12' style={{display: "flex"}}>
+                                {
+                                    [6, 7, 8, 9, 10].map((val) => {
+                                        return (
+                                            <div className='px-2'>
+                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
@@ -461,14 +469,13 @@ const Users = (props) => {
                                                 <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                                     {columns.map((column, key) => {
                                                         const value = row[column.id];
-
-                                                        if (column.id != 'action') {
+                                                        if (column.id == 'grade') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align={column.align}>
-                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                    <GradeButton number={value} selected={true}/>
                                                                 </TableCell>
-                                                            );
-                                                        } else {
+                                                            )
+                                                        } else if (column.id == 'action') {
                                                             return (
                                                                 <TableCell key={`body_${key}`} className='text-right'>
                                                                     <IconButton color='primary' onClick={() => onEditUser(row)}>
@@ -481,6 +488,12 @@ const Users = (props) => {
                                                                     }}>
                                                                         <DeleteIcon/>
                                                                     </IconButton>
+                                                                </TableCell>
+                                                                )
+                                                        } else {
+                                                            return (
+                                                                <TableCell key={`body_${key}`} align={column.align}>
+                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
                                                                 </TableCell>
                                                             );
                                                         }
