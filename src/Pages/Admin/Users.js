@@ -12,14 +12,13 @@ import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
 import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon} from "@material-ui/icons";
-import Fab from "@material-ui/core/Fab";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 import GradeButton from "../../Components/Admin/GradeButton";
+import DialogButton from "../../Components/Common/DialogButton";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -217,7 +216,7 @@ const Users = (props) => {
         setFullName('');
         setEmail('');
         setPassword('');
-        setGrade('');
+        setGrade('6');
 
         setChangeTitle('Add New User');
         onToggleDialog();
@@ -365,12 +364,8 @@ const Users = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <Button onClick={onToggleDialog} style={{minWidth: '100px', minHeight: '40px'}} disabled={loading} size='large' variant='contained' color="secondary">
-                    Cancel
-                </Button>
-                <Button type='submit' size='large' style={{minWidth: '100px', minHeight: '40px'}} disabled={loading}  variant='contained'  color="primary">
-                    Save
-                </Button>
+                <DialogButton disabled={loading} backgroundColor='red' width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
+                <DialogButton disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
             </DialogActions>
         </form>
     </Dialog>);

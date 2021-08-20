@@ -23,7 +23,10 @@ const DialogButton = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
-                style={{backgroundColor: '#306cb0', color: '#fff'}}>
+                style={{backgroundColor: props.backgroundColor ? props.backgroundColor : '#306cb0', color: '#fff', width: props.width}}
+                disabled={props.disabled}
+                type={props.type}
+        >
             {props.title}
         </Button>
     )
