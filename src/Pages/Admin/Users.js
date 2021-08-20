@@ -20,6 +20,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 import GradeButton from "../../Components/Admin/GradeButton";
+import CompetitionItem from "../../Components/Admin/CompetitionItem";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -306,10 +307,10 @@ const Users = (props) => {
                             </div>
                             <div className='col-lg-9 col-sm-12' style={{display: "flex"}}>
                                 {
-                                    [6, 7, 8, 9, 10].map((val) => {
+                                    [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
                                             <div className='px-2'>
-                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                                <GradeButton key={key} number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })

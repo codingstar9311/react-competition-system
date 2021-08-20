@@ -4,7 +4,6 @@ import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        width: '40px',
         height: '40px',
         borderRadius: '50%',
         fontSize: '1.5em',
@@ -13,18 +12,18 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
         border: 'solid 1px #000',
-        minWidth: 'unset !important'
+        minWidth: '70px'
     }
 }));
 
-const GradeButton = (props) => {
+const CompetitionItem = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
-             style={{backgroundColor: props.selected ? '#00A9AF' : '#fff', color: props.selected ? '#fff' : '#00A9AF'}}>
+                style={{backgroundColor: props.selected ? '#1f44af' : '#fff', color: props.selected ? '#fff' : '#00A9AF'}}>
             {props.number}
         </Button>
     )
 };
 
-export default GradeButton;
+export default CompetitionItem;
