@@ -74,8 +74,6 @@ const Users = (props) => {
     };
 
     const onLoadUsers = (searchVal = '') => {
-        let query = firestore.collection('users');
-
         firestore.collection('users').orderBy('fullName', 'asc')
             .get()
             .then(usersRef => {
@@ -83,19 +81,20 @@ const Users = (props) => {
                 usersRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
-
-                        if (searchVal != '') {
-                            if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
+                        if (data.deleted != true && data.type != 'admin') {
+                            if (searchVal != '') {
+                                if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
+                                    tempUsers.push({
+                                        id: item.id,
+                                        ...data
+                                    })
+                                }
+                            } else {
                                 tempUsers.push({
                                     id: item.id,
                                     ...data
                                 })
                             }
-                        } else {
-                            tempUsers.push({
-                                id: item.id,
-                                ...data
-                            })
                         }
                     }
                 });
@@ -200,7 +199,7 @@ const Users = (props) => {
     };
 
     const onAddUser = () => {
-        selectedId('');
+        setSelectedId('');
         setFullName('');
         setEmail('');
         setPassword('');
@@ -213,7 +212,9 @@ const Users = (props) => {
     const onDeleteUser = async (user_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('users').doc(user_id).delete()
+        firestore.collection('users').doc(user_id).set({
+            deleted: true
+        }, {merge: true})
             .then(() => {
                 toast.success('Successfully deleted!');
                 let curRows = rows;
@@ -228,7 +229,7 @@ const Users = (props) => {
             }).catch(error => {
                 toast.error(error.message);
             }).finally(() => {
-                setDeleteLoading(true);
+                setDeleteLoading(false);
                 setOpenDeleteDialog(false);
             });
     };
@@ -382,7 +383,7 @@ const Users = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' onClick={() => onToggleDialog()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
+                    <Button variant='contained' onClick={() => onAddUser()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
                 </div>
             </div>
             <div className='row'>
