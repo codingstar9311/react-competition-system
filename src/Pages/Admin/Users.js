@@ -18,6 +18,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
+import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -48,6 +49,9 @@ const Users = (props) => {
 
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
     const [errorMessage, setErrorMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -187,7 +191,7 @@ const Users = (props) => {
 
         setFullName(row.fullName);
         setEmail(row.email);
-        setPassword(row.email);
+        setPassword(row.password);
         setGrade(row.grade);
 
         setChangeTitle('Update Current User');
@@ -206,8 +210,27 @@ const Users = (props) => {
         onToggleDialog();
     };
 
-    const onDeleteUser = (user_id) => {
+    const onDeleteUser = async (user_id) => {
 
+        setDeleteLoading(true);
+        firestore.collection('users').doc(user_id).delete()
+            .then(() => {
+                toast.success('Successfully deleted!');
+                let curRows = rows;
+                curRows = curRows.filter(item => {
+                    if (item.id == selectedId) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                setRows([...curRows]);
+            }).catch(error => {
+                toast.error(error.message);
+            }).finally(() => {
+                setDeleteLoading(true);
+                setOpenDeleteDialog(false);
+            });
     };
 
     const dialog = (<Dialog open={openDialog}
@@ -315,6 +338,7 @@ const Users = (props) => {
             {
                 dialog
             }
+            <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>User List</h2>
@@ -399,7 +423,10 @@ const Users = (props) => {
                                                                 <EditIcon/>
                                                             </IconButton>
                                                             &nbsp;
-                                                            <IconButton color='secondary' onClick={() => onDeleteUser(row.id)}>
+                                                            <IconButton color='secondary' onClick={() => {
+                                                                setSelectedId(row.id);
+                                                                setOpenDeleteDialog(true);
+                                                            }}>
                                                                 <DeleteIcon/>
                                                             </IconButton>
                                                         </TableCell>
