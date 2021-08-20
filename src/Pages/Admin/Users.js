@@ -63,7 +63,7 @@ const Users = (props) => {
 
     const classes = useStyles();
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(20);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -97,6 +97,7 @@ const Users = (props) => {
                 });
 
                 setRows([...tempUsers]);
+                setPage(0);
 
             })
             .catch(error => {
@@ -336,6 +337,11 @@ const Users = (props) => {
                             type={'text'}
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
+                            onKeyUp={e => {
+                                if (e.key == 'Enter') {
+                                    onLoadUsers(searchText);
+                                }
+                            }}
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
