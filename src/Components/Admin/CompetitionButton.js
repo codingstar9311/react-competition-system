@@ -14,11 +14,12 @@ const useStyles = makeStyles((theme) => ({
         minWidth: '70px',
         paddingLeft: '20px',
         paddingRight: '20px',
-        textTransform: 'unset'
+        textTransform: 'unset',
+        border: 'solid 1px #306cb0'
     }
 }));
 
-const CompetitionItem = (props) => {
+const CompetitionButton = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
@@ -28,4 +29,4 @@ const CompetitionItem = (props) => {
     )
 };
 
-export default CompetitionItem;
+export default CompetitionButton;
