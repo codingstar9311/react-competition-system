@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {makeStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
+import {COLOR_USER_SELECTED_BUTTON} from "../../Utils/Constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,7 +24,7 @@ const CompetitionSelectButton = (props) => {
     const [fontColor, setFontColor] = useState('');
     useEffect(() => {
         if (props.status == 'done') {
-            setBgColor('#306cb0');
+            setBgColor(COLOR_USER_SELECTED_BUTTON);
             setFontColor('#fff');
 
         } else if (props.status == 'process') {

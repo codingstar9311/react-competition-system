@@ -1,6 +1,7 @@
 import React from "react";
 import {makeStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
+import {COLOR_USER_SELECTED_BUTTON} from "../../Utils/Constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,7 +24,7 @@ const CompetitionButton = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
-                style={{backgroundColor: props.selected ? '#306cb0' : '#fff', color: props.selected ? '#fff' : '#306cb0'}}>
+                style={{backgroundColor: props.selected ? COLOR_USER_SELECTED_BUTTON : '#fff', color: props.selected ? '#fff' : COLOR_USER_SELECTED_BUTTON}}>
             {props.name} : {props.score}
         </Button>
     )

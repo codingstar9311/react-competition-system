@@ -1,6 +1,7 @@
 import React from "react";
 import {makeStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
+import {COLOR_USER_SELECTED_BUTTON} from "../../Utils/Constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -23,7 +24,7 @@ const DialogButton = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
-                style={{backgroundColor: props.backgroundColor ? props.backgroundColor : '#306cb0', color: '#fff', width: props.width}}
+                style={{backgroundColor: props.backgroundColor ? props.backgroundColor : COLOR_USER_SELECTED_BUTTON, color: '#fff', width: props.width}}
                 disabled={props.disabled}
                 type={props.type}
         >

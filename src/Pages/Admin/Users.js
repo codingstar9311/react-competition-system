@@ -19,6 +19,7 @@ import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 import GradeButton from "../../Components/Admin/GradeButton";
 import DialogButton from "../../Components/Common/DialogButton";
+import {COLOR_ADMIN_MAIN} from "../../Utils/Constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -89,9 +90,11 @@ const Users = (props) => {
                 usersRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
+                        let {fullName, email, grade} = data;
+                        grade = grade.toString();
                         if (data.deleted != true && data.type != 'admin') {
                             if (searchVal != '') {
-                                if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
+                                if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
                                     tempUsers.push({
                                         no,
                                         id: item.id,
@@ -425,7 +428,7 @@ const Users = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' onClick={() => onAddUser()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
+                    <Button variant='contained' onClick={() => onAddUser()} startIcon={<AddIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>Add</Button>
                 </div>
             </div>
             <div className='row'>
