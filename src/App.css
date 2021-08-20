@@ -11,6 +11,7 @@ body {
 .app {
   display: flex;
   position: relative;
+  /*overflow-y: hidden;*/
 }
 .logo-wrapper {
   min-height: 100px;

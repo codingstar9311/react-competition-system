@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
-import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
+import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles, CircularProgress,
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
@@ -10,13 +10,15 @@ import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
+import IconButton from "@material-ui/core/IconButton";
+import {Delete as DeleteIcon, Edit as EditIcon} from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
     },
     container: {
-        maxHeight: '100%',
+        height: 'calc(100% - 10px)',
     }
 
 }));
@@ -28,8 +30,15 @@ const Users = (props) => {
         { id: 'email', label: 'Email', minWidth: 170 },
         { id: 'password', label: 'Password', minWidth: 170 },
         { id: 'grade', label: 'Grade', minWidth: 170 },
-        { id: 'action', label: 'Action', width: 100 },
+        { id: 'action', label: 'Action', maxWidth: 60 },
     ];
+
+    const [maxHeight, setMaxHeight] = useState(`${(window.innerHeight - 90)}px`);
+
+    window.onresize = function () {
+        let tempHeight = window.innerHeight - 90;
+        setMaxHeight(`${tempHeight}px`);
+    };
 
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
@@ -44,7 +53,7 @@ const Users = (props) => {
 
     const classes = useStyles();
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [rowsPerPage, setRowsPerPage] = React.useState(20);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -57,7 +66,7 @@ const Users = (props) => {
                 let tempUsers = usersRef.docs.map(item => {
                     if (item.exists) {
                         return {
-                            uid: item.uid,
+                            id: item.id,
                             ...item.data()
                         }
                     }
@@ -120,6 +129,14 @@ const Users = (props) => {
             .finally(() => {
                 setLoading(false);
             });
+    };
+
+    const onEditUser = (user_id) => {
+        alert(JSON.stringify(user_id));
+    };
+
+    const onDeleteUser = (user_id) => {
+
     };
 
     const dialog = (<Dialog open={openDialog}
@@ -192,10 +209,10 @@ const Users = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <Button onClick={onToggleDialog} style={{minWidth: '100px'}} size='large' variant='contained' color="secondary">
+                <Button onClick={onToggleDialog} style={{minWidth: '100px', minHeight: '40px'}} disabled={loading} size='large' variant='contained' color="secondary">
                     Cancel
                 </Button>
-                <Button type='submit' size='large' style={{minWidth: '100px'}}  variant='contained'  color="primary">
+                <Button type='submit' size='large' style={{minWidth: '100px', minHeight: '40px'}} disabled={loading}  variant='contained'  color="primary">
                     Save
                 </Button>
             </DialogActions>
@@ -203,7 +220,7 @@ const Users = (props) => {
     </Dialog>);
 
     return (
-        <>
+        <div style={{height: '100px'}}>
             {
                 <ToastContainer
                     position='top-center'
@@ -234,7 +251,7 @@ const Users = (props) => {
             </div>
             <div className='row'>
                 <div className='col-12'>
-                    <TableContainer className={classes.container}>
+                    <TableContainer style={{maxHeight: maxHeight}}>
                         <Table stickyHeader aria-label="sticky table">
                             <TableHead>
                                 <TableRow>
@@ -255,11 +272,25 @@ const Users = (props) => {
                                         <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                             {columns.map((column, key) => {
                                                 const value = row[column.id];
-                                                return (
-                                                    <TableCell key={`body_${key}`} align={column.align}>
-                                                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                    </TableCell>
-                                                );
+
+                                                if (column.id != 'action') {
+                                                    return (
+                                                        <TableCell key={`body_${key}`} align={column.align}>
+                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                        </TableCell>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <TableCell key={`body_${key}`}>
+                                                            <IconButton color='primary' onClick={() => onEditUser(row.id)}>
+                                                                <EditIcon/>
+                                                            </IconButton>
+                                                            <IconButton color='secondary' onClick={() => onDeleteUser(row.id)}>
+                                                                <DeleteIcon/>
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    );
+                                                }
                                             })}
                                         </TableRow>
                                     );
@@ -271,7 +302,7 @@ const Users = (props) => {
                 </div>
             </div>
 
-        </>
+        </div>
     )
 };
 export default Users;

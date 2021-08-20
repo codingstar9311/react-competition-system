@@ -28,7 +28,7 @@ const AdminLayout = (props) => {
     return (
         <>
             <Sidebar/>
-            <div className='container-fluid py-1'>
+            <div className='container-fluid py-1 overflow-auto'>
                 <Switch>
                     <Route path={'/admin/dashboard'} component={Dashboard}/>
                     <Route path={'/admin/users'} component={Users}/>
