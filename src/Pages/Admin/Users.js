@@ -5,14 +5,19 @@ import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles, Circu
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
-import {AddCircle as AddIcon} from "@material-ui/icons";
+import {AddCircle as AddIcon, Visibility, VisibilityOff} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon} from "@material-ui/icons";
+import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon} from "@material-ui/icons";
 import Fab from "@material-ui/core/Fab";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import FilledInput from "@material-ui/core/FilledInput";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import Input from "@material-ui/core/Input";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -44,7 +49,11 @@ const Users = (props) => {
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
+    const [searchText, setSearchText] = useState('');
+    const [changeTitle, setChangeTitle] = useState('Add New User');
+    const [selectedId, setSelectedId] = useState('');
     const [fullName, setFullName] = useState('');
     const [grade, setGrade] = useState(0);
     const [email, setEmail] = useState('');
@@ -60,20 +69,35 @@ const Users = (props) => {
         setPage(newPage);
     };
 
-    const onLoadUsers = () => {
+    const onLoadUsers = (searchVal = '') => {
+        let query = firestore.collection('users');
+
         firestore.collection('users').orderBy('fullName', 'asc')
             .get()
             .then(usersRef => {
-                let tempUsers = usersRef.docs.map(item => {
+                let tempUsers = [];
+                usersRef.docs.forEach(item => {
                     if (item.exists) {
-                        return {
-                            id: item.id,
-                            ...item.data()
+                        let data = item.data();
+
+                        if (searchVal != '') {
+                            if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
+                                tempUsers.push({
+                                    id: item.id,
+                                    ...data
+                                })
+                            }
+                        } else {
+                            tempUsers.push({
+                                id: item.id,
+                                ...data
+                            })
                         }
                     }
                 });
 
                 setRows([...tempUsers]);
+
             })
             .catch(error => {
                 toast.error(error.message);
@@ -93,7 +117,7 @@ const Users = (props) => {
         setOpenDialog(!openDialog);
     };
 
-    const onAddUser = async (event) => {
+    const onSaveUser = async (event) => {
         event.preventDefault();
 
         setLoading(true);
@@ -109,35 +133,75 @@ const Users = (props) => {
             .where('email', "==", email)
             .get();
 
-        console.log(results.docs);
-
-        if (results.docs && results.docs.length > 0) {
-            setErrorMessage('Current email already exists!');
-            setLoading(false);
-            return;
-        }
-
-        firestore.collection('users')
-            .add(userInfo)
-            .then(docRef => {
-                toast.success('Successfully Added!');
-                onLoadUsers();
-                onToggleDialog();
-            })
-            .catch(error => {
-                setErrorMessage(error);
-            })
-            .finally(() => {
+        if (selectedId == '') {
+            if (results.docs && results.docs.length > 0) {
+                setErrorMessage('Current email already exists!');
                 setLoading(false);
-            });
+                return;
+            }
+            firestore.collection('users')
+                .add(userInfo)
+                .then(docRef => {
+                    toast.success('Successfully Added!');
+                    onLoadUsers();
+                    onToggleDialog();
+                })
+                .catch(error => {
+                    setErrorMessage(error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        } else {
+            firestore.collection('users')
+                .doc(selectedId)
+                .set({
+                    ...userInfo
+                })
+                .then(docRef => {
+                    toast.success('Successfully Updated!');
+                    let curRows = rows;
+                    curRows = curRows.map(item => {
+                        if (item.id == selectedId) {
+                            item = {id: selectedId, ...userInfo};
+                        }
+
+                        return item;
+                    });
+
+                    setRows([...curRows])
+                    onToggleDialog();
+                })
+                .catch(error => {
+                    setErrorMessage(error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        }
     };
 
     const onEditUser = (row) => {
+        setSelectedId(row.id);
+
         setFullName(row.fullName);
         setEmail(row.email);
         setPassword(row.email);
         setGrade(row.grade);
 
+        setChangeTitle('Update Current User');
+
+        onToggleDialog();
+    };
+
+    const onAddUser = () => {
+        selectedId('');
+        setFullName('');
+        setEmail('');
+        setPassword('');
+        setGrade('');
+
+        setChangeTitle('Add New User');
         onToggleDialog();
     };
 
@@ -155,8 +219,8 @@ const Users = (props) => {
                                 onToggleDialog()
                             }}
                             aria-labelledby="form-dialog-title">
-        <form onSubmit={onAddUser} autoComplete="off">
-            <DialogTitle className='text-center'>Add New User</DialogTitle>
+        <form onSubmit={onSaveUser} autoComplete="off">
+            <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-5 px-2'>
@@ -196,16 +260,26 @@ const Users = (props) => {
                         />
                     </div>
                     <div className='col-5 px-2 text-center'>
-                        <TextField
-                            autoFocus
-                            label="Password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            min={0}
-                            fullWidth
-                            required
-                        />
+                        <FormControl fullWidth>
+                            <InputLabel htmlFor="filled-adornment-password">Password</InputLabel>
+                            <Input
+                                id="standard-adornment-password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                endAdornment={
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                }
+                            />
+                        </FormControl>
                     </div>
                 </div>
                 <div className='row justify-content-center'>
@@ -241,10 +315,10 @@ const Users = (props) => {
                 dialog
             }
             <div className='row justify-content-center align-items-center py-2'>
-                <div className='col-lg-5 col-sm-12'>
+                <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>User List</h2>
                 </div>
-                <div className='col-lg-5 col-sm-12 text-right'>
+                <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination
                         rowsPerPageOptions={[10, 25, 100]}
                         component="div"
@@ -255,7 +329,29 @@ const Users = (props) => {
                         onRowsPerPageChange={handleChangeRowsPerPage}
                     />
                 </div>
-                <div className='col-lg-2 col-sm-12 text-center'>
+                <div className='col-lg-4 col-sm-12 text-center align-items-center justify-content-end' style={{display: 'flex'}}>
+                    <FormControl>
+                        <InputLabel htmlFor="filled-adornment-password">Search</InputLabel>
+                        <Input
+                            type={'text'}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            endAdornment={
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={() => {
+                                            onLoadUsers(searchText)
+                                        }}
+                                        edge="end"
+                                    >
+                                        <SearchIcon/>
+                                    </IconButton>
+                                </InputAdornment>
+                            }
+                        />
+                    </FormControl>
+                    &nbsp; &nbsp;
                     <Button variant='contained' onClick={() => onToggleDialog()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
                 </div>
             </div>
