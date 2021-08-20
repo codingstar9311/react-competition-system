@@ -287,7 +287,7 @@ const CompetitionResults = (props) => {
             <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <TextField
                             autoFocus
                             label="Full Name"
@@ -298,7 +298,7 @@ const CompetitionResults = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-5 px-2 text-center'>
+                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <TextField
                             autoFocus
                             label="Grade"
@@ -311,7 +311,7 @@ const CompetitionResults = (props) => {
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <TextField
                             autoFocus
                             label="Email Address"
@@ -323,7 +323,7 @@ const CompetitionResults = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-5 px-2 text-center'>
+                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <FormControl fullWidth>
                             <InputLabel htmlFor="filled-adornment-password">Password</InputLabel>
                             <Input
@@ -491,7 +491,7 @@ const CompetitionResults = (props) => {
                                 {
                                     rows != null && rows.length < 1 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} align="center">
+                                            <TableCell colSpan={10} align="center">
                                                 There is no data....
                                             </TableCell>
                                         </TableRow>

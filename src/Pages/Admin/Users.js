@@ -19,7 +19,7 @@ import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
 import GradeButton from "../../Components/Admin/GradeButton";
 import DialogButton from "../../Components/Common/DialogButton";
-import {COLOR_ADMIN_MAIN} from "../../Utils/Constants";
+import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON} from "../../Utils/Constants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -181,15 +181,15 @@ const Users = (props) => {
                 .then(docRef => {
                     toast.success('Successfully Updated!');
                     let curRows = rows;
-                    curRows = curRows.map(item => {
+                    curRows = curRows.map((item, index) => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, ...userInfo};
+                            item = {id: selectedId, no: (index + 1), ...userInfo};
                         }
 
                         return item;
                     });
 
-                    setRows([...curRows])
+                    setRows([...curRows]);
                     onToggleDialog();
                 })
                 .catch(error => {
@@ -290,7 +290,7 @@ const Users = (props) => {
             <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <TextField
                             autoFocus
                             label="Full Name"
@@ -301,7 +301,7 @@ const Users = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-5 px-2 text-center'>
+                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <div className='row align-items-center'>
                             <div className='col-lg-3 col-sm-12 text-left'>
                                 Grade
@@ -321,7 +321,7 @@ const Users = (props) => {
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <TextField
                             autoFocus
                             label="Email Address"
@@ -333,7 +333,7 @@ const Users = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-5 px-2 text-center'>
+                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <FormControl fullWidth>
                             <InputLabel htmlFor="filled-adornment-password">Password</InputLabel>
                             <Input
@@ -367,7 +367,7 @@ const Users = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <DialogButton disabled={loading} backgroundColor='red' width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
+                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
                 <DialogButton disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
             </DialogActions>
         </form>
@@ -502,7 +502,7 @@ const Users = (props) => {
                                 {
                                     rows != null && rows.length < 1 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} align="center">
+                                            <TableCell colSpan={10} align="center">
                                                 There is no data....
                                             </TableCell>
                                         </TableRow>

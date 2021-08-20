@@ -19,6 +19,14 @@ import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
+import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON} from "../../Utils/Constants";
+import DialogButton from "../../Components/Common/DialogButton";
+import GradeButton from "../../Components/Admin/GradeButton";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import Checkbox from "@material-ui/core/Checkbox";
+import ListItemText from "@material-ui/core/ListItemText";
+import CompetitionButton from "../../Components/Admin/CompetitionButton";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -33,10 +41,13 @@ const Problems = (props) => {
 
     const columns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'fullName', label: 'Name', minWidth: 170 },
-        { id: 'guestion', label: 'Email', minWidth: 170 },
-        { id: 'answers', label: 'Password', minWidth: 170 },
-        { id: 'correct_answers', label: 'Grade', minWidth: 170 },
+        { id: 'problemName', label: 'Problem Name', minWidth: 170 },
+        { id: 'grade', label: 'Grade', minWidth: 170 },
+        { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
+        { id: 'question', label: 'Question Content', minWidth: 170 },
+        { id: 'answers', label: 'Answers', minWidth: 170 },
+        { id: 'correctAnswers', label: 'Correct Answers', minWidth: 170 },
+        { id: 'dateTime', label: 'Created At', minWidth: 170 },
         { id: 'action', label: 'Action', maxWidth: 60 },
     ];
 
@@ -48,6 +59,7 @@ const Problems = (props) => {
     };
 
     const [answers, setAnswers] = useState([]);
+    const [correctAnswers, setCorrectAnswers] = useState([]);
 
     const [rows, setRows] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -69,8 +81,8 @@ const Problems = (props) => {
     const [selectedId, setSelectedId] = useState('');
     const [problemName, setProblemName] = useState('');
     const [grade, setGrade] = useState(0);
-    const [email, setContent] = useState('');
-    const [password, setPassword] = useState('');
+    const [question, setQuestion] = useState('');
+    const [competitionName, setCompetitionName] = useState('');
 
     const [loading, setLoading] = useState(false);
 
@@ -82,7 +94,7 @@ const Problems = (props) => {
     };
 
     const onLoadProblems = (searchVal = '') => {
-        firestore.collection('users').orderBy('fullName', 'asc')
+        firestore.collection('problems').orderBy('dateTime', 'desc')
             .get()
             .then(problemRef => {
                 let tempProblems = [];
@@ -90,17 +102,15 @@ const Problems = (props) => {
                 problemRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
-                        if (data.deleted != true && data.type != 'admin') {
-                            if (searchVal != '') {
-                                if (data.fullName.includes(searchVal) || data.email.includes(searchVal) || data.grade.includes(searchVal)) {
-                                    tempProblems.push({
-                                        no,
-                                        id: item.id,
-                                        ...data
-                                    });
-                                    no ++;
-                                }
-                            } else {
+
+                        let problemName = data.problemName ? data.problemName : '';
+                        let grade = data.grade ? data.grade.toString() : '';
+                        let competitionName = data.competitionName ? data.competitionName : '';
+                        let question = data.question ? data.question : '';
+
+                        if (searchVal != '') {
+                            if (problemName.includes(searchVal) || grade.includes(searchVal) || competitionName.includes(searchVal)
+                            || question.includes(searchVal)) {
                                 tempProblems.push({
                                     no,
                                     id: item.id,
@@ -108,6 +118,13 @@ const Problems = (props) => {
                                 });
                                 no ++;
                             }
+                        } else {
+                            tempProblems.push({
+                                no,
+                                id: item.id,
+                                ...data
+                            });
+                            no ++;
                         }
                     }
                 });
@@ -137,26 +154,26 @@ const Problems = (props) => {
     const onSaveProblem = async (event) => {
         event.preventDefault();
 
+        if (correctAnswers.length < 1) {
+            toast.warning('Please select correct answers!');
+            return;
+        }
+
         setLoading(true);
 
         let problemInfo = {
-            fullName: problemName,
-            email,
-            password,
+            problemName,
+            question,
             grade,
+            competitionName,
+            answers,
+            correctAnswers,
+            dateTime: new Date()
         };
 
-        let results = await firestore.collection('users')
-            .where('email', "==", email)
-            .get();
-
         if (selectedId == '') {
-            if (results.docs && results.docs.length > 0) {
-                setErrorMessage('Current email already exists!');
-                setLoading(false);
-                return;
-            }
-            firestore.collection('users')
+
+            firestore.collection('problems')
                 .add(problemInfo)
                 .then(docRef => {
                     toast.success('Successfully Added!');
@@ -170,17 +187,17 @@ const Problems = (props) => {
                     setLoading(false);
                 });
         } else {
-            firestore.collection('users')
+            firestore.collection('problems')
                 .doc(selectedId)
                 .set({
                     ...problemInfo
-                })
+                }, {merge: true})
                 .then(docRef => {
                     toast.success('Successfully Updated!');
                     let curRows = rows;
-                    curRows = curRows.map(item => {
+                    curRows = curRows.map((item, index) => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, ...problemInfo};
+                            item = {id: selectedId, no: (index + 1),  ...problemInfo};
                         }
 
                         return item;
@@ -201,12 +218,15 @@ const Problems = (props) => {
     const onEditProblem = (row) => {
         setSelectedId(row.id);
 
-        setProblemName(row.fullName);
-        setContent(row.email);
-        setPassword(row.password);
+        setProblemName(row.problemName);
+        setCompetitionName(row.competitionName);
         setGrade(row.grade);
+        setQuestion(row.question);
 
-        setChangeTitle('Update Current User');
+        setAnswers(row.answers);
+        setCorrectAnswers(row.correctAnswers);
+
+        setChangeTitle('Update Current Problem');
 
         onToggleDialog();
     };
@@ -214,9 +234,10 @@ const Problems = (props) => {
     const onAddProblem = () => {
         setSelectedId('');
         setProblemName('');
-        setContent('');
-        setPassword('');
-        setGrade('');
+        setQuestion('');
+        setCompetitionName('');
+        setAnswers([]);
+        setCorrectAnswers([]);
 
         setChangeTitle('Add New Problem');
         onToggleDialog();
@@ -273,6 +294,35 @@ const Problems = (props) => {
         return stabilizedThis.map((el) => el[0]);
     };
 
+    const onChangeCorrectAnswers = (event) => {
+        setCorrectAnswers(event.target.value);
+    };
+
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+
+    const MenuProps = {
+        PaperProps: {
+            style: {
+                maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+                width: 250,
+            },
+        },
+    };
+
+    const onDeleteAnswer = (key) => {
+        answers.splice(key, 1);
+        setAnswers([...answers]);
+
+        setCorrectAnswers([]);
+    };
+
+    const onChangeAnswer = (val, key) => {
+        let items = [...answers];
+        items[key] = val;
+        setAnswers(items);
+    };
+
     const dialog = (<Dialog open={openDialog}
                             fullWidth={true}
                             maxWidth={'md'}
@@ -287,7 +337,7 @@ const Problems = (props) => {
             <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
+                    <div className='col-lg-5 col-sm-10px-2'>
                         <TextField
                             autoFocus
                             label="Problem Name"
@@ -298,52 +348,116 @@ const Problems = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-5 px-2 text-center'>
-                        <TextField
-                            autoFocus
-                            label="Grade"
-                            type="number"
-                            value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
-                            fullWidth
-                            required
-                        />
+                    <div className='col-lg-5 col-sm-10px-2'>
+                        <div className='row align-items-center'>
+                            <div className='col-lg-3 col-sm-12 text-left'>
+                                Grade
+                            </div>
+                            <div className='col-lg-9 col-sm-12 justify-content-around' style={{display: "flex"}}>
+                                {
+                                    [6, 7, 8, 9, 10].map((val, key) => {
+                                        return (
+                                            <div className='px-2'>
+                                                <GradeButton key={key} number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-5 px-2'>
-                        <TextField
-                            autoFocus
-                            label="Email Address"
-                            autoComplete="false"
-                            value={email}
-                            onChange={(e) => setContent(e.target.value)}
-                            type="email"
-                            fullWidth={true}
-                            required
-                        />
-                    </div>
-                    <div className='col-5 px-2 text-center'>
-                        <FormControl fullWidth>
-                            <InputLabel htmlFor="filled-adornment-password">Password</InputLabel>
-                            <Input
-                                id="standard-adornment-password"
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                endAdornment={
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            edge="end"
-                                        >
-                                            {showPassword ? <Visibility /> : <VisibilityOff />}
-                                        </IconButton>
-                                    </InputAdornment>
+
+                    <div className='col-lg-10 col-sm-10px-2'>
+                        <div className='row align-items-center'>
+                            <div className='col-lg-4 col-sm-12 text-left'>
+                                Competition Name
+                            </div>
+                            <div className='col-lg-8 col-sm-12 justify-content-around' style={{display: "flex"}}>
+                                {
+                                    ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
+                                        return (
+                                            <div className='px-2'>
+                                                <CompetitionButton key={key} name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                            </div>
+                                        )
+                                    })
                                 }
-                            />
+                            </div>
+                        </div>
+                    </div>
+                    <div className='col-lg-5 col-sm-10px-2'>
+
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-5 col-sm-10px-2 text-center'>
+                        <div className='row'>
+                            <div className='col-12'>
+                                <label>
+                                    Create Answers:
+                                </label>
+                                &nbsp;&nbsp;
+                                <IconButton variant='outlined' size="medium" color='secondary' onClick={() => setAnswers([...answers, ''])}>
+                                    <AddIcon/>
+                                </IconButton>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={'col-lg-5 col-sm-10px-2 text-center'}>
+                        {
+                            answers.map((item, key) => (
+                                <FormControl fullWidth key={key} style={{paddingBottom: '5px'}}>
+                                    <InputLabel htmlFor="filled-adornment-password">Answer - {key + 1}</InputLabel>
+                                    <Input
+                                        type={'text'}
+                                        value={item}
+                                        onChange={(e) => onChangeAnswer(e.target.value, key)}
+                                        endAdornment={
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle password visibility"
+                                                    onClick={() => {
+                                                        onDeleteAnswer(key);
+                                                    }}
+                                                    edge="end"
+                                                    title={`Delete Answer - ${key + 1}`}
+                                                >
+                                                    <DeleteIcon/>
+                                                </IconButton>
+                                            </InputAdornment>
+                                        }
+                                    />
+                                </FormControl>
+                            ))
+                        }
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-5 col-sm-10px-2'>
+                        <FormControl fullWidth>
+                            <InputLabel id="demo-mutiple-checkbox-label">Correct Answers</InputLabel>
+                            <Select
+                                labelId="demo-mutiple-checkbox-label"
+                                id="demo-mutiple-checkbox"
+                                multiple
+                                value={correctAnswers}
+                                onChange={onChangeCorrectAnswers}
+                                input={<Input />}
+                                renderValue={(selected) => selected.join(', ')}
+                                MenuProps={MenuProps}
+                            >
+                                {answers.map((name) => (
+                                    <MenuItem key={name} value={name}>
+                                        <Checkbox checked={correctAnswers.indexOf(name) > -1} />
+                                        <ListItemText primary={name} />
+                                    </MenuItem>
+                                ))}
+                            </Select>
                         </FormControl>
+                    </div>
+                    <div className='col-lg-5 col-sm-10px-2'>
                     </div>
                 </div>
                 <div className='row justify-content-center'>
@@ -357,12 +471,8 @@ const Problems = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <Button onClick={onToggleDialog} style={{minWidth: '100px', minHeight: '40px'}} disabled={loading} size='large' variant='contained' color="secondary">
-                    Cancel
-                </Button>
-                <Button type='submit' size='large' style={{minWidth: '100px', minHeight: '40px'}} disabled={loading}  variant='contained'  color="primary">
-                    Save
-                </Button>
+                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
+                <DialogButton disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
             </DialogActions>
         </form>
     </Dialog>);
@@ -422,7 +532,7 @@ const Problems = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' onClick={() => onAddProblem()} startIcon={<AddIcon/>} color='primary' className='float-right'>Add</Button>
+                    <Button variant='contained' onClick={() => onAddProblem()} startIcon={<AddIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>Add</Button>
                 </div>
             </div>
             <div className='row'>
@@ -461,14 +571,32 @@ const Problems = (props) => {
                                                 <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                                     {columns.map((column, key) => {
                                                         const value = row[column.id];
-
-                                                        if (column.id != 'action') {
+                                                        if (column.id == 'grade') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align={column.align}>
-                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                    <GradeButton number={value} selected={true}/>
                                                                 </TableCell>
-                                                            );
-                                                        } else {
+                                                            )
+                                                        } if (column.id == 'competitionName') {
+                                                            return (
+                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                    <CompetitionButton name={value} selected={true}/>
+                                                                </TableCell>
+                                                            )
+                                                        } if (column.id == 'answers' || column.id == 'correctAnswers') {
+                                                            return (
+                                                                <TableCell key={`body_${key}`}>
+                                                                    {value.join(', ')}
+                                                                </TableCell>
+                                                            )
+                                                        } if (column.id == 'dateTime') {
+                                                            return (
+                                                                <TableCell key={`body_${key}`}>
+                                                                    {new Date(value.seconds * 1000).toLocaleString()}
+                                                                </TableCell>
+                                                            )
+                                                        }
+                                                        else if (column.id == 'action') {
                                                             return (
                                                                 <TableCell key={`body_${key}`} className='text-right'>
                                                                     <IconButton color='primary' onClick={() => onEditProblem(row)}>
@@ -482,6 +610,12 @@ const Problems = (props) => {
                                                                         <DeleteIcon/>
                                                                     </IconButton>
                                                                 </TableCell>
+                                                            )
+                                                        } else {
+                                                            return (
+                                                                <TableCell key={`body_${key}`} align={column.align}>
+                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                </TableCell>
                                                             );
                                                         }
                                                     })}
@@ -491,7 +625,7 @@ const Problems = (props) => {
                                 {
                                     rows != null && rows.length < 1 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} align="center">
+                                            <TableCell colSpan={10} align="center">
                                                 There is no data....
                                             </TableCell>
                                         </TableRow>
