@@ -4,7 +4,6 @@ import 'react-pro-sidebar/dist/css/styles.css';
 import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -79,13 +78,10 @@ const Competitions = (props) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
-
-    const [errorMessage, setErrorMessage] = useState('');
 
     // table setting
     const [order, setOrder] = React.useState('asc');
@@ -222,9 +218,6 @@ const Competitions = (props) => {
                         let tempLimitTime = data.limitTime ? data.limitTime.toString() : '';
                         let tempLimitWarningCount = data.limitWarningCount ? data.limitWarningCount.toString() : '';
 
-                        // if (tempStartDate.includes(searchVal)) {
-                        //     alert('dddd');
-                        // }
                         if (searchVal != '') {
                             if (tempGrade.includes(searchVal) || tempCompetition.includes(searchVal)
                             || tempLimitTime.includes(searchVal) || tempLimitWarningCount.includes(searchVal)
@@ -303,7 +296,7 @@ const Competitions = (props) => {
                     onToggleDialog();
                 })
                 .catch(error => {
-                    setErrorMessage(error);
+                    toast.error(error.message);
                 })
                 .finally(() => {
                     setLoading(false);
@@ -329,7 +322,7 @@ const Competitions = (props) => {
                     onToggleDialog();
                 })
                 .catch(error => {
-                    setErrorMessage(error);
+                    toast.error(error.message);
                 })
                 .finally(() => {
                     setLoading(false);
@@ -617,17 +610,7 @@ const Competitions = (props) => {
                             </div>
                         </div> : null
                 }
-                <div className='row' style={{height: '100px'}}>
-                </div>
-
-                <div className='row justify-content-center'>
-                    <div className='col-10'>
-                        {
-                            errorMessage != '' ?
-                                <Alert severity='error' onClose={() => setErrorMessage('')}>{errorMessage}</Alert>
-                                : ''
-                        }
-                    </div>
+                <div className='row' style={{height: 80}}>
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
@@ -638,13 +621,11 @@ const Competitions = (props) => {
     </Dialog>);
 
     return (
-        <div style={{height: '100px'}}>
-            {
-                <ToastContainer
-                    position='top-center'
-                    autoClose={2000}
-                    traggle/>
-            }
+        <div>
+            <ToastContainer
+                position='top-center'
+                autoClose={2000}
+                traggle/>
             {
                 dialog
             }

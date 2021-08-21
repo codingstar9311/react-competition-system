@@ -3,12 +3,12 @@ import {auth, getUserDocument} from "../../firebase";
 import {Button, TextField} from "@material-ui/core";
 
 import logo from '../../Assets/Images/logo.png';
+import {ToastContainer} from "react-toastify";
 const title = 'Math Tournament';
 
 const Login = (props) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
@@ -28,6 +28,10 @@ const Login = (props) => {
 
     return (
         <div className="container">
+            <ToastContainer
+                position='top-center'
+                autoClose={2000}
+                traggle/>
             <div className="row">
                 <div className="col-sm-6 col-md-4 col-lg-3 px-0">
                     <div className="logo-wrapper">
@@ -46,7 +50,7 @@ const Login = (props) => {
                                    error={emailError != '' ? true : false}
                                    type={'email'}
                                    label={"Email"}
-                                   variant="filled"
+                                   variant='standard'
                                    onChange={(e) => setEmail(e.target.value)}
                                    onFocus={() => setEmailError('')}
                                    helperText={emailError}
@@ -62,7 +66,7 @@ const Login = (props) => {
                             color={'primary'}
                             onChange={(e) => setPassword(e.target.value)}
                             onFocus={() => setPasswordError('')}
-                            variant="filled" required/>
+                            variant="standard" required/>
                     </div>
                     <div className='form-group'>
                         <Button style={{width: '100px'}} type='submit' variant="contained" color="primary">

@@ -78,8 +78,6 @@ const Problems = (props) => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const [errorMessage, setErrorMessage] = useState('');
-
     // table setting
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('desc');
@@ -193,7 +191,7 @@ const Problems = (props) => {
                     onToggleDialog();
                 })
                 .catch(error => {
-                    setErrorMessage(error);
+                    toast.error(error.message);
                 })
                 .finally(() => {
                     setLoading(false);
@@ -219,7 +217,7 @@ const Problems = (props) => {
                     onToggleDialog();
                 })
                 .catch(error => {
-                    setErrorMessage(error);
+                    toast.error(error.message);
                 })
                 .finally(() => {
                     setLoading(false);
@@ -488,15 +486,6 @@ const Problems = (props) => {
                     <div className='col-lg-5 col-sm-10 px-2'>
                     </div>
                 </div>
-                <div className='row justify-content-center'>
-                    <div className='col-10'>
-                        {
-                            errorMessage != '' ?
-                                <Alert severity='error' onClose={() => setErrorMessage('')}>{errorMessage}</Alert>
-                                : ''
-                        }
-                    </div>
-                </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
                 <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
@@ -506,13 +495,11 @@ const Problems = (props) => {
     </Dialog>);
 
     return (
-        <div style={{height: '100px'}}>
-            {
-                <ToastContainer
-                    position='top-center'
-                    autoClose={2000}
-                    traggle/>
-            }
+        <div>
+            <ToastContainer
+                position='top-center'
+                autoClose={2000}
+                traggle/>
             {
                 dialog
             }

@@ -371,13 +371,11 @@ const CompetitionResults = (props) => {
     </Dialog>);
 
     return (
-        <div style={{height: '100px'}}>
-            {
-                <ToastContainer
-                    position='top-center'
-                    autoClose={2000}
-                    traggle/>
-            }
+        <div>
+            <ToastContainer
+                position='top-center'
+                autoClose={2000}
+                traggle/>
             {
                 dialog
             }
