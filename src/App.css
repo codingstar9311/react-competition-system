@@ -24,3 +24,8 @@ body {
   border-radius: 50% !important;
 }
 
+.dialog-border {
+  border-radius: 50px !important;
+  border: solid 2px #306cb0;
+}
+

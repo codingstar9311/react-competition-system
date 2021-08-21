@@ -18,8 +18,8 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
-import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
-import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON} from "../../Utils/Constants";
+import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
+import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
 import DialogButton from "../../Components/Common/DialogButton";
 import GradeButton from "../../Components/Admin/GradeButton";
 import Select from "@material-ui/core/Select";
@@ -34,7 +34,12 @@ const useStyles = makeStyles((theme) => ({
     },
     container: {
         height: 'calc(100% - 10px)',
-    }
+    },
+    dlgBlueBorder: {
+        border: 'solid 2px',
+        borderRadius: '50px',
+        borderColor: COLOR_DLG_BORDER_BLUE
+    },
 }));
 
 const Problems = (props) => {
@@ -235,6 +240,8 @@ const Problems = (props) => {
         setSelectedId('');
         setProblemName('');
         setQuestion('');
+
+        setGrade('');
         setCompetitionName('');
         setAnswers([]);
         setCorrectAnswers([]);
@@ -326,6 +333,9 @@ const Problems = (props) => {
     const dialog = (<Dialog open={openDialog}
                             fullWidth={true}
                             maxWidth={'md'}
+                            classes={{
+                                paper: classes.dlgBlueBorder
+                            }}
                             onClose={(event, reason) => {
                                 if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
                                     return;
@@ -488,7 +498,7 @@ const Problems = (props) => {
             {
                 dialog
             }
-            <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>Problem List</h2>

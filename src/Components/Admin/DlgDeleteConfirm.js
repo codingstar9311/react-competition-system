@@ -5,13 +5,28 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions";
 import Button from "@material-ui/core/Button";
 import React from "react";
+import {commonStyle} from "../../Utils/CommonStyle.css";
+import {makeStyles} from "@material-ui/core";
+import {COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
 
-const DeleteConfirmDlg = (props) => {
+const useStyles = makeStyles((theme) => ({
+    dlgBlueBorder: {
+        border: 'solid 2px',
+        borderRadius: '50px',
+        borderColor: COLOR_DLG_BORDER_BLUE
+    },
+}));
+
+const DlgDeleteConfirm = (props) => {
+    const classes = useStyles();
     return (
         <Dialog
             fullWidth={true}
             maxWidth={"sm"}
             open={props.open}
+            classes={{
+                paper: classes.dlgBlueBorder
+            }}
             onClose={(event, reason) => {
                 if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
                     return;
@@ -38,4 +53,4 @@ const DeleteConfirmDlg = (props) => {
     )
 };
 
-export default DeleteConfirmDlg;
+export default DlgDeleteConfirm;

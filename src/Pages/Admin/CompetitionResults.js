@@ -18,7 +18,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
-import DeleteConfirmDlg from "../../Components/Admin/DeleteConfirmDlg";
+import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -378,7 +378,7 @@ const CompetitionResults = (props) => {
             {
                 dialog
             }
-            <DeleteConfirmDlg title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>User List</h2>
