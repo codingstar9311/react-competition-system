@@ -41,10 +41,13 @@ const CompetitionResults = (props) => {
         { id: 'action', label: 'Action', maxWidth: 60 },
     ];
 
-    const [maxHeight, setMaxHeight] = useState(`${(window.innerHeight - 90)}px`);
+    const [maxHeight, setMaxHeight] = useState('none');
 
     window.onresize = function () {
-        let tempHeight = window.innerHeight - 90;
+
+        let adminHeader = document.getElementById('admin-header').offsetHeight;
+        let tempHeight = window.innerHeight - adminHeader - 10;
+
         setMaxHeight(`${tempHeight}px`);
     };
 

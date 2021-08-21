@@ -52,10 +52,13 @@ const Users = (props) => {
         { id: 'action', label: 'Action', maxWidth: 60 },
     ];
 
-    const [maxHeight, setMaxHeight] = useState(`${(window.innerHeight - 90)}px`);
+    const [maxHeight, setMaxHeight] = useState('none');
 
     window.onresize = function () {
-        let tempHeight = window.innerHeight - 90;
+
+        let adminHeader = document.getElementById('admin-header').offsetHeight;
+        let tempHeight = window.innerHeight - adminHeader - 10;
+
         setMaxHeight(`${tempHeight}px`);
     };
 
@@ -135,6 +138,7 @@ const Users = (props) => {
     };
 
     useEffect(() => {
+        setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
         onLoadUsers();
     }, []);
 
@@ -398,7 +402,7 @@ const Users = (props) => {
                 dialog
             }
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
-            <div className='row justify-content-center align-items-center py-2'>
+            <div className='row justify-content-center align-items-center py-2' id='admin-header'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>User List</h2>
                 </div>
