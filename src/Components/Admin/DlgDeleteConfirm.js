@@ -7,7 +7,7 @@ import Button from "@material-ui/core/Button";
 import React from "react";
 import {commonStyle} from "../../Utils/CommonStyle.css";
 import {makeStyles} from "@material-ui/core";
-import {COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
+import {COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
 
 const useStyles = makeStyles((theme) => ({
     dlgBlueBorder: {
@@ -35,7 +35,7 @@ const DlgDeleteConfirm = (props) => {
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title" className='text-center'>{props.title}</DialogTitle>
+            <DialogTitle id="alert-dialog-title" className='text-center' style={{color: COLOR_DLG_TITLE}}>{props.title}</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                     {props.content}

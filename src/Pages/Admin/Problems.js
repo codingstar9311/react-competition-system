@@ -19,7 +19,12 @@ import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
-import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
+import {
+    COLOR_ADMIN_MAIN,
+    COLOR_CANCEL_BUTTON,
+    COLOR_DLG_BORDER_BLUE,
+    COLOR_DLG_TITLE
+} from "../../Utils/ColorConstants";
 import DialogButton from "../../Components/Common/DialogButton";
 import GradeButton from "../../Components/Admin/GradeButton";
 import Select from "@material-ui/core/Select";
@@ -83,7 +88,7 @@ const Problems = (props) => {
     // //////
 
     const [searchText, setSearchText] = useState('');
-    const [changeTitle, setChangeTitle] = useState('Add New Problem');
+    const [modalTitle, setModalTitle] = useState('Add New Problem');
     const [selectedId, setSelectedId] = useState('');
     const [problemName, setProblemName] = useState('');
     const [grade, setGrade] = useState(0);
@@ -232,7 +237,7 @@ const Problems = (props) => {
         setAnswers(row.answers);
         setCorrectAnswers(row.correctAnswers);
 
-        setChangeTitle('Update Current Problem');
+        setModalTitle('Update Current Problem');
 
         onToggleDialog();
     };
@@ -247,7 +252,7 @@ const Problems = (props) => {
         setAnswers([]);
         setCorrectAnswers([]);
 
-        setChangeTitle('Add New Problem');
+        setModalTitle('Add New Problem');
         onToggleDialog();
     };
 
@@ -346,7 +351,7 @@ const Problems = (props) => {
                             }}
                             aria-labelledby="form-dialog-title">
         <form onSubmit={onSaveProblem} autoComplete="off">
-            <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
+            <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>{modalTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-5 col-sm-10 px-2'>

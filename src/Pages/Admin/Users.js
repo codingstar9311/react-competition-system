@@ -19,7 +19,12 @@ import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
 import GradeButton from "../../Components/Admin/GradeButton";
 import DialogButton from "../../Components/Common/DialogButton";
-import {COLOR_ADMIN_MAIN, COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
+import {
+    COLOR_ADMIN_MAIN,
+    COLOR_CANCEL_BUTTON,
+    COLOR_DLG_BORDER_BLUE,
+    COLOR_DLG_TITLE
+} from "../../Utils/ColorConstants";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -70,7 +75,7 @@ const Users = (props) => {
     // //////
 
     const [searchText, setSearchText] = useState('');
-    const [changeTitle, setChangeTitle] = useState('Add New User');
+    const [modalTitle, setModalTitle] = useState('Add New User');
     const [selectedId, setSelectedId] = useState('');
     const [fullName, setFullName] = useState('');
     const [grade, setGrade] = useState(0);
@@ -214,7 +219,7 @@ const Users = (props) => {
         setPassword(row.password);
         setGrade(row.grade);
 
-        setChangeTitle('Update Current User');
+        setModalTitle('Update Current User');
 
         onToggleDialog();
     };
@@ -226,7 +231,7 @@ const Users = (props) => {
         setPassword('');
         setGrade('6');
 
-        setChangeTitle('Add New User');
+        setModalTitle('Add New User');
         onToggleDialog();
     };
 
@@ -295,7 +300,7 @@ const Users = (props) => {
                             }}
                             aria-labelledby="form-dialog-title">
         <form onSubmit={onSaveUser} autoComplete="off">
-            <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
+            <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>{modalTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-5 col-sm-10 px-2'>
@@ -318,8 +323,8 @@ const Users = (props) => {
                                 {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
-                                            <div className='px-2'>
-                                                <GradeButton key={key} number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                            <div className='px-2' key={key}>
+                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -447,7 +452,7 @@ const Users = (props) => {
                                 <TableRow>
                                     {columns.map((column, key) => (
                                         <TableCell
-                                            key={key}
+                                            key={`tablehead_${key}`}
                                             align={column.align}
                                             style={{ minWidth: column.minWidth}}
                                             className={column.id == 'action' ? 'text-right' : ''}
@@ -472,18 +477,18 @@ const Users = (props) => {
                                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                         .map((row, key) => {
                                             return (
-                                                <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                                    {columns.map((column, key) => {
+                                                <TableRow hover role="checkbox" tabIndex={-1} key={`tablerow_${key}`}>
+                                                    {columns.map((column, subKey) => {
                                                         const value = row[column.id];
                                                         if (column.id == 'grade') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                <TableCell key={`body_${subKey}`} align='center'>
                                                                     <GradeButton number={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } else if (column.id == 'action') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} className='text-right'>
+                                                                <TableCell key={`body_${subKey}`} className='text-right'>
                                                                     <IconButton color='primary' size='small' onClick={() => onEditUser(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>
@@ -498,7 +503,7 @@ const Users = (props) => {
                                                                 )
                                                         } else {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align={column.align}>
+                                                                <TableCell key={`body_${subKey}`} align={column.align}>
                                                                     {column.format && typeof value === 'number' ? column.format(value) : value}
                                                                 </TableCell>
                                                             );
