@@ -49,15 +49,16 @@ const Competitions = (props) => {
 
     const columns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'grade', label: 'Grade', minWidth: 170 },
+        { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
         { id: 'selectedProblems', label: 'Selected Problems', minWidth: 170 },
-        { id: 'limitTime', label: 'Limit Time(min)', minWidth: 170 },
-        { id: 'limitWarningCount', label: 'Limit Warning Count', minWidth: 170 },
-        { id: 'startDate', label: 'Start Date', minWidth: 170 },
-        { id: 'endDate', label: 'End Date', minWidth: 170 },
-        { id: 'status', label: 'Status', minWidth: 170 },
-        { id: 'action', label: 'Action', width: '140px' }
+        { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
+        { id: 'limitWarningCount', label: 'Limit Warning Count', width: 100 },
+        { id: 'startDate', label: 'Start Date', width: 140 },
+        { id: 'endDate', label: 'End Date', width: 140 },
+        { id: 'status', label: 'Status', width: 80 },
+        { id: 'dateTime', label: 'Created At', minWidth: 170 },
+        { id: 'action', label: 'Action', width: 80 }
     ];
 
     const [maxHeight, setMaxHeight] = useState('none');
@@ -111,7 +112,10 @@ const Competitions = (props) => {
                 .get()
                 .then(compRef => {
                     let selProblems = [];
-
+                    let tempLimitTime = 20;
+                    let tempLimitWarningCount = 20;
+                    let tempStartDate = '';
+                    let tempEndDate = '';
 
                     if (compRef.exists) {
                         let data = compRef.data();
@@ -127,8 +131,17 @@ const Competitions = (props) => {
                             })
                         }
 
+                        tempLimitTime = data.limitTime ? data.limitTime : 20;
+                        tempLimitWarningCount = data.limitWariningCount ? data.limitWariningCount : 20;
+                        tempStartDate = data.startDate ? data.startDate : '';
+                        tempEndDate = data.endDate ? data.endDate : '';
+
                     }
                     setSelectedProblems([...selProblems]);
+                    setLimitTime(tempLimitTime);
+                    setLimitWarningCount(tempLimitWarningCount);
+                    setStartDate(tempStartDate);
+                    setEndDate(tempEndDate);
                 })
                 .catch((error) => {
                     toast.error(error.message);
@@ -245,6 +258,7 @@ const Competitions = (props) => {
 
     useEffect(() => {
         setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
+        onLoadCompetitions();
         onLoadTotalProblems();
     }, []);
 
@@ -628,7 +642,7 @@ const Competitions = (props) => {
             {
                 <ToastContainer
                     position='top-center'
-                    autoClose={3000}
+                    autoClose={2000}
                     traggle/>
             }
             {
@@ -691,7 +705,7 @@ const Competitions = (props) => {
                                         <TableCell
                                             key={key}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth, width: column.width}}
+                                            style={{ maxWidth: column.maxWidth, width: column.width}}
                                             className={column.id == 'action' ? 'text-right' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
