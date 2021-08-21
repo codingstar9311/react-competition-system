@@ -53,6 +53,7 @@ const Competitions = (props) => {
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
         { id: 'selectedQuestions', label: 'Selected Questions', minWidth: 170 },
         { id: 'startDate', label: 'Start Date', minWidth: 170 },
+        { id: 'limitWarningCount', label: 'Limit Warning Count', minWidth: 170 },
         { id: 'endDate', label: 'End Date', minWidth: 170 },
         { id: 'status', label: 'Status', minWidth: 170 },
         { id: 'action', label: 'Action', width: '140px' },
@@ -103,8 +104,15 @@ const Competitions = (props) => {
                         let data = compRef.data();
                         let selQuestions = [];
                         if (data.selectedQuestions) {
-                            // selQuestions =
+                            selQuestions = totalQuestions.filter(item => {
+                                if (selQuestions.includes(item.id)) {
+                                    return true;
+                                }
+                                return false;
+                            })
                         }
+
+                        setSelectedQuestions([...selQuestions]);
                     }
                 })
                 .catch((error) => {
@@ -127,7 +135,6 @@ const Competitions = (props) => {
             .get()
             .then(questionRef => {
                 let tempTotalQuestions = [];
-                let no = 1;
                 questionRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
@@ -137,19 +144,15 @@ const Competitions = (props) => {
                         if (filterCompName !== '') {
                             if (filterCompName !== competitionName) {
                                 tempTotalQuestions.push({
-                                    no,
                                     id: item.id,
                                     ...data
                                 });
-                                no ++;
                             }
                         } else {
                             tempTotalQuestions.push({
-                                no,
                                 id: item.id,
                                 ...data
                             });
-                            no ++;
                         }
                     }
                 });
