@@ -14,7 +14,7 @@ const AdminLayout = (props) => {
         auth.onAuthStateChanged(async user => {
             if (user) {
                 let curUser = await getUserDocument(user.uid);
-                if (curUser.type == 'admin') {
+                if (curUser && curUser.type == 'admin') {
                     props.history.push('/admin/problems');
                 } else {
                     props.history.push('/user/dashboard');

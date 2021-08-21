@@ -369,8 +369,8 @@ const Problems = (props) => {
                                 {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
-                                            <div className='px-2'>
-                                                <GradeButton key={key} number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                            <div className='px-2' key={key} >
+                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })

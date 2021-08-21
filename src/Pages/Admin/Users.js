@@ -484,11 +484,11 @@ const Users = (props) => {
                                                         } else if (column.id == 'action') {
                                                             return (
                                                                 <TableCell key={`body_${key}`} className='text-right'>
-                                                                    <IconButton color='primary' onClick={() => onEditUser(row)}>
+                                                                    <IconButton color='primary' size='small' onClick={() => onEditUser(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>
                                                                     &nbsp;
-                                                                    <IconButton color='secondary' onClick={() => {
+                                                                    <IconButton color='secondary' size='small' onClick={() => {
                                                                         setSelectedId(row.id);
                                                                         setOpenDeleteDialog(true);
                                                                     }}>
