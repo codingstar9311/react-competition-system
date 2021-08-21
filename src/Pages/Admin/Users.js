@@ -1,8 +1,8 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
-import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles, CircularProgress,
-    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField
+import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
+    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon, Visibility, VisibilityOff} from "@material-ui/icons";

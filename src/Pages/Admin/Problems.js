@@ -5,17 +5,15 @@ import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
-import {AddCircle as AddIcon, Visibility, VisibilityOff} from "@material-ui/icons";
+import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
 import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon} from "@material-ui/icons";
-import Fab from "@material-ui/core/Fab";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
-import FilledInput from "@material-ui/core/FilledInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
@@ -78,7 +76,6 @@ const Problems = (props) => {
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [errorMessage, setErrorMessage] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
 
     // table setting
     const [order, setOrder] = React.useState('asc');
