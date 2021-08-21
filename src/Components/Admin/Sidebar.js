@@ -8,6 +8,12 @@ import {BusinessCenter} from "@material-ui/icons";
 
 const Sidebar = (props) => {
     const [collapsed, setCollapsed] = useState(false);
+
+    const onLogout = () => {
+        localStorage.removeItem('user_info');
+
+        props.history.push('/login');
+    };
     return (
         <ProSidebar collapsed={collapsed}>
             <SidebarHeader style={{textAlign: 'right'}}>
@@ -26,7 +32,7 @@ const Sidebar = (props) => {
             </SidebarContent>
             <SidebarFooter>
                 <Menu>
-                    <MenuItem icon={<ExitToApp/>} onClick={() => auth.signOut()}>Logout</MenuItem>
+                    <MenuItem icon={<ExitToApp/>} onClick={() => onLogout()}>Logout</MenuItem>
                 </Menu>
             </SidebarFooter>
         </ProSidebar>

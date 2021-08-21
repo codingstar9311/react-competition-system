@@ -1,9 +1,9 @@
 import React, {useState} from "react";
-import {auth, getUserDocument} from "../../firebase";
+import {auth, firestore, getUserDocument} from "../../firebase";
 import {Button, TextField} from "@material-ui/core";
 
 import logo from '../../Assets/Images/logo.png';
-import {ToastContainer} from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 const title = 'Math Tournament';
 
 const Login = (props) => {
@@ -14,6 +14,32 @@ const Login = (props) => {
 
     const onLogin = (event) => {
         event.preventDefault();
+
+        firestore.collection('users')
+            .where('email', '==', email).where('password', '==', password)
+            .get()
+            .then(userRef => {
+                if (userRef.docs.length > 0) {
+                    let userInfo = userRef.docs[0];
+                    if (userInfo.exists) {
+                        let userData = userInfo.data();
+
+                        let user = {
+                            id: userInfo.id,
+                            ...userInfo.data()
+                        };
+
+                        if (userInfo.type == 'admin') {
+                            localStorage.setItem('user_info', JSON.stringify(user));
+                        } else {
+                            localStorage.setItem('user_info', JSON.stringify(user));
+                            props.history.push('/user/dashboard');
+                        }
+                    }
+                } else {
+                    toast.error('Please insert correct email or password!');
+                }
+            });
         auth.signInWithEmailAndPassword(email, password)
             .then(async authUser => {
                 let userInfo = await getUserDocument(authUser.uid);

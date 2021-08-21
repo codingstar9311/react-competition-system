@@ -11,22 +11,22 @@ import CompetitionResults from "./CompetitionResults";
 const AdminLayout = (props) => {
 
     useEffect(() => {
-        auth.onAuthStateChanged(async user => {
-            if (user) {
-                let curUser = await getUserDocument(user.uid);
-                if (curUser && curUser.type == 'admin') {
-                    props.history.push('/admin/competitions');
-                } else {
-                    props.history.push('/user/dashboard');
-                }
+        let userInfo = localStorage.getItem('user_info');
+
+        if (userInfo == null) {
+            props.history.push('/login');
+        } else {
+            let curUser = JSON.parse(userInfo);
+            if (curUser && curUser.type === 'admin') {
+                props.history.push('/admin/competitions');
             } else {
-                props.history.push('/login');
+                props.history.push('/user/dashboard');
             }
-        });
-    }, [auth]);
+        }
+    }, []);
     return (
         <>
-            <Sidebar/>
+            <Sidebar history={props.history}/>
             <div className='container-fluid py-1 overflow-auto'>
                 <Switch>
                     <Route path={'/admin/dashboard'} component={Dashboard}/>
