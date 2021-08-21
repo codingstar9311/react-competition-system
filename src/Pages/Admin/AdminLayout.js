@@ -13,6 +13,8 @@ const AdminLayout = (props) => {
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
 
+        console.log('herrrrrrrrrrrrrrr');
+
         if (userInfo == null) {
             props.history.push('/login');
         } else {
