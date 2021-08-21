@@ -27,6 +27,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
 import CompetitionButton from "../../Components/Admin/CompetitionButton";
+import Yamde from "yamde";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -53,7 +54,7 @@ const Problems = (props) => {
         { id: 'answers', label: 'Answers', minWidth: 170 },
         { id: 'correctAnswers', label: 'Correct Answers', minWidth: 170 },
         { id: 'dateTime', label: 'Created At', minWidth: 170 },
-        { id: 'action', label: 'Action', maxWidth: 60 },
+        { id: 'action', label: 'Action', width: '140px' },
     ];
 
     const [maxHeight, setMaxHeight] = useState(`${(window.innerHeight - 90)}px`);
@@ -336,6 +337,7 @@ const Problems = (props) => {
                             classes={{
                                 paper: classes.dlgBlueBorder
                             }}
+                            scroll="body"
                             onClose={(event, reason) => {
                                 if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
                                     return;
@@ -347,7 +349,7 @@ const Problems = (props) => {
             <DialogTitle className='text-center'>{changeTitle}</DialogTitle>
             <DialogContent>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-5 col-sm-10px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <TextField
                             autoFocus
                             label="Problem Name"
@@ -358,7 +360,7 @@ const Problems = (props) => {
                             required
                         />
                     </div>
-                    <div className='col-lg-5 col-sm-10px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <div className='row align-items-center'>
                             <div className='col-lg-3 col-sm-12 text-left'>
                                 Grade
@@ -378,8 +380,16 @@ const Problems = (props) => {
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-10'>
+                        Question Content
+                    </div>
+                    <div className='col-10'>
+                        <Yamde value={question} handler={setQuestion} theme="light" />
+                    </div>
+                </div>
 
-                    <div className='col-lg-10 col-sm-10px-2'>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2'>
                         <div className='row align-items-center'>
                             <div className='col-lg-4 col-sm-12 text-left'>
                                 Competition Name
@@ -397,12 +407,12 @@ const Problems = (props) => {
                             </div>
                         </div>
                     </div>
-                    <div className='col-lg-5 col-sm-10px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
 
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-5 col-sm-10px-2 text-center'>
+                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <div className='row'>
                             <div className='col-12'>
                                 <label>
@@ -415,7 +425,7 @@ const Problems = (props) => {
                             </div>
                         </div>
                     </div>
-                    <div className={'col-lg-5 col-sm-10px-2 text-center'}>
+                    <div className={'col-lg-5 col-sm-10 px-2 text-center'}>
                         {
                             answers.map((item, key) => (
                                 <FormControl fullWidth key={key} style={{paddingBottom: '5px'}}>
@@ -423,7 +433,10 @@ const Problems = (props) => {
                                     <Input
                                         type={'text'}
                                         value={item}
-                                        onChange={(e) => onChangeAnswer(e.target.value, key)}
+                                        onChange={(e) => {
+                                            onChangeAnswer(e.target.value, key)
+                                            setCorrectAnswers([]);
+                                        }}
                                         endAdornment={
                                             <InputAdornment position="end">
                                                 <IconButton
@@ -445,7 +458,7 @@ const Problems = (props) => {
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-5 col-sm-10px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                         <FormControl fullWidth>
                             <InputLabel id="demo-mutiple-checkbox-label">Correct Answers</InputLabel>
                             <Select
@@ -467,7 +480,7 @@ const Problems = (props) => {
                             </Select>
                         </FormControl>
                     </div>
-                    <div className='col-lg-5 col-sm-10px-2'>
+                    <div className='col-lg-5 col-sm-10 px-2'>
                     </div>
                 </div>
                 <div className='row justify-content-center'>
@@ -555,7 +568,7 @@ const Problems = (props) => {
                                         <TableCell
                                             key={key}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth}}
+                                            style={{ minWidth: column.minWidth, width: column.width}}
                                             className={column.id == 'action' ? 'text-right' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
@@ -609,13 +622,18 @@ const Problems = (props) => {
                                                         else if (column.id == 'action') {
                                                             return (
                                                                 <TableCell key={`body_${key}`} className='text-right'>
-                                                                    <IconButton color='primary' onClick={() => onEditProblem(row)}>
+                                                                    <IconButton color='primary'
+                                                                                size='small'
+                                                                                onClick={() => onEditProblem(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>
                                                                     &nbsp;
-                                                                    <IconButton color='secondary' onClick={() => {
+                                                                    <IconButton color='secondary'
+                                                                                size='small'
+                                                                                onClick={() => {
                                                                         setSelectedId(row.id);
                                                                         setOpenDeleteDialog(true);
+
                                                                     }}>
                                                                         <DeleteIcon/>
                                                                     </IconButton>
