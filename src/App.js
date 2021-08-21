@@ -21,7 +21,7 @@ export default function App() {
                     <Route path="/admin" render={(props) => <AdminLayout {...props}/>}/>
                     <Route path="/login" render={(props) => <Login {...props}/>}/>
                     <Route path="/user" render={(props) => <UserLayout {...props}/>}/>
-                    <Redirect to={'/admin'}/>
+                    <Redirect to={'/login'}/>
                 </Switch>
             </div>
         </Router>

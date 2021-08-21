@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {auth, firestore, getUserDocument} from "../../firebase";
 import {Button, TextField} from "@material-ui/core";
 
@@ -31,6 +31,7 @@ const Login = (props) => {
 
                         if (userInfo.type == 'admin') {
                             localStorage.setItem('user_info', JSON.stringify(user));
+                            props.history.push('/admin/dashboard');
                         } else {
                             localStorage.setItem('user_info', JSON.stringify(user));
                             props.history.push('/user/dashboard');
@@ -40,17 +41,26 @@ const Login = (props) => {
                     toast.error('Please insert correct email or password!');
                 }
             });
-        auth.signInWithEmailAndPassword(email, password)
-            .then(async authUser => {
-                let userInfo = await getUserDocument(authUser.uid);
-                localStorage.setItem('@user_info', JSON.stringify(userInfo));
-                props.history.push('/profile');
-            })
-            .catch(error => {
-                console.log(error.message);
-                setEmailError('Wrong Email or password!');
-            });
     };
+
+    useEffect(() => {
+        let userInfo = localStorage.getItem('user_info');
+
+        if (userInfo == null) {
+            // props.history.push('/login');
+            console.log('here---------------');
+        } else {
+            let curUser = JSON.parse(userInfo);
+            if (curUser.type === 'admin') {
+                props.history.push('/admin/dashboard');
+            } else if (curUser.type === 'user') {
+                props.history.push('/user/dashboard');
+            } else {
+                localStorage.removeItem('user_info');
+                console.log('here---------')
+            }
+        }
+    }, []);
 
     return (
         <div className="container">

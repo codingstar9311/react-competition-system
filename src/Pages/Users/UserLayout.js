@@ -12,10 +12,13 @@ const UserLayout = (props) => {
             props.history.push('/login');
         } else {
             let curUser = JSON.parse(userInfo);
-            if (curUser && curUser.type === 'admin') {
-                props.history.push('/admin/competitions');
+            if (curUser.type === 'admin') {
+                props.history.push('/admin/dashboard');
+            } else if (curUser.type === 'user') {
+                console.log('here--------');
             } else {
-                props.history.push('/user/dashboard');
+                localStorage.removeItem('user_info');
+                props.history.push('/login');
             }
         }
     }, []);

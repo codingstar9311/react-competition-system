@@ -13,16 +13,17 @@ const AdminLayout = (props) => {
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
 
-        console.log('herrrrrrrrrrrrrrr');
-
         if (userInfo == null) {
             props.history.push('/login');
         } else {
             let curUser = JSON.parse(userInfo);
-            if (curUser && curUser.type === 'admin') {
-                props.history.push('/admin/competitions');
-            } else {
+            if (curUser.type === 'admin') {
+                console.log('here------');
+            } else if (curUser.type === 'user') {
                 props.history.push('/user/dashboard');
+            } else {
+                localStorage.removeItem('user_info');
+                props.history.push('/login');
             }
         }
     }, []);
