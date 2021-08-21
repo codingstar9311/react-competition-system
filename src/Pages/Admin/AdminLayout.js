@@ -15,7 +15,7 @@ const AdminLayout = (props) => {
             if (user) {
                 let curUser = await getUserDocument(user.uid);
                 if (curUser && curUser.type == 'admin') {
-                    props.history.push('/admin/problems');
+                    props.history.push('/admin/competitions');
                 } else {
                     props.history.push('/user/dashboard');
                 }

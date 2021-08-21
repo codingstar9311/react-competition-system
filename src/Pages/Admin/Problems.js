@@ -256,7 +256,7 @@ const Problems = (props) => {
     const onDeleteProblem = async (problem_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('users').doc(problem_id).set({
+        firestore.collection('problems').doc(problem_id).set({
             deleted: true
         }, {merge: true})
             .then(() => {
