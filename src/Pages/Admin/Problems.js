@@ -256,9 +256,8 @@ const Problems = (props) => {
     const onDeleteProblem = async (problem_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('problems').doc(problem_id).set({
-            deleted: true
-        }, {merge: true})
+        firestore.collection('problems').doc(problem_id)
+            .delete()
             .then(() => {
                 toast.success('Successfully deleted!');
                 let curRows = rows;
@@ -400,8 +399,8 @@ const Problems = (props) => {
                                 {
                                     ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
                                         return (
-                                            <div className='px-2'>
-                                                <CompetitionButton key={key} name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                            <div className='px-2' key={key}>
+                                                <CompetitionButton name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -473,8 +472,8 @@ const Problems = (props) => {
                                 renderValue={(selected) => selected.join(', ')}
                                 MenuProps={MenuProps}
                             >
-                                {answers.map((name) => (
-                                    <MenuItem key={name} value={name}>
+                                {answers.map((name, key) => (
+                                    <MenuItem key={key} value={name}>
                                         <Checkbox checked={correctAnswers.indexOf(name) > -1} />
                                         <ListItemText primary={name} />
                                     </MenuItem>
@@ -507,7 +506,7 @@ const Problems = (props) => {
             {
                 <ToastContainer
                     position='top-center'
-                    autoClose={3000}
+                    autoClose={2000}
                     traggle/>
             }
             {

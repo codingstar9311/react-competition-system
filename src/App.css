@@ -29,3 +29,7 @@ body {
   border: solid 2px #306cb0;
 }
 
+.problems-select-multi .optionContainer {
+  max-height: 200px!important;
+}
+

@@ -25,11 +25,11 @@ import {
 } from "../../Utils/ColorConstants";
 import DialogButton from "../../Components/Common/DialogButton";
 import GradeButton from "../../Components/Admin/GradeButton";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import Checkbox from "@material-ui/core/Checkbox";
-import ListItemText from "@material-ui/core/ListItemText";
+
 import CompetitionButton from "../../Components/Admin/CompetitionButton";
+import {Multiselect} from "multiselect-react-dropdown";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -51,12 +51,13 @@ const Competitions = (props) => {
         { id: 'no', label: 'No', width: 60 },
         { id: 'grade', label: 'Grade', minWidth: 170 },
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
-        { id: 'selectedQuestions', label: 'Selected Questions', minWidth: 170 },
-        { id: 'startDate', label: 'Start Date', minWidth: 170 },
+        { id: 'selectedProblems', label: 'Selected Problems', minWidth: 170 },
+        { id: 'limitTime', label: 'Limit Time(min)', minWidth: 170 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', minWidth: 170 },
+        { id: 'startDate', label: 'Start Date', minWidth: 170 },
         { id: 'endDate', label: 'End Date', minWidth: 170 },
         { id: 'status', label: 'Status', minWidth: 170 },
-        { id: 'action', label: 'Action', width: '140px' },
+        { id: 'action', label: 'Action', width: '140px' }
     ];
 
     const [maxHeight, setMaxHeight] = useState(`${(window.innerHeight - 90)}px`);
@@ -66,10 +67,16 @@ const Competitions = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
-    const [totalQuestions, setTotalQuestions] = useState([]);
-    const [selectedQuestions, setSelectedQuestions] = useState([]);
+    const [totalProblems, setTotalProblems] = useState([]);
+    const [selectedProblems, setSelectedProblems] = useState([]);
 
-    const [rows, setRows] = useState(null);
+    const [limitTime, setLimitTime] = useState(20);
+    const [limitWarningCount, setLimitWarningCount] = useState(20);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+
+    const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -94,26 +101,31 @@ const Competitions = (props) => {
     const classes = useStyles();
 
 
-    const onLoadCurrentInfo = () => {
-        if (grade != '' && competitionName != '') {
+    const onLoadCurrentInfo = (insGrad = '', insCompetitionName = '') => {
+        if (insGrad !== '' && insCompetitionName !== '') {
             let docName = grade + "_" + competitionName;
             firestore.collection('competitions').doc(docName)
                 .get()
                 .then(compRef => {
+                    let selProblems = [];
+
+
                     if (compRef.exists) {
                         let data = compRef.data();
-                        let selQuestions = [];
-                        if (data.selectedQuestions) {
-                            selQuestions = totalQuestions.filter(item => {
-                                if (selQuestions.includes(item.id)) {
+                        if (data.selectedProblems) {
+                            let tlProblemsIds = totalProblems.map(item => {
+                                return item.id;
+                            });
+                            selProblems = data.selectedProblems.filter(item => {
+                                if (tlProblemsIds.includes(item.id)) {
                                     return true;
                                 }
                                 return false;
                             })
                         }
 
-                        setSelectedQuestions([...selQuestions]);
                     }
+                    setSelectedProblems([...selProblems]);
                 })
                 .catch((error) => {
                     toast.error(error.message);
@@ -126,38 +138,50 @@ const Competitions = (props) => {
         setPage(newPage);
     };
 
-    const onLoadTotalQuestions = (filterGrade, filterCompName) => {
-        let query = firestore.collection('questions');
-        if (filterGrade != undefined) {
-            query.where('grade', '==', filterGrade);
-        }
-        query.orderBy('problemName')
+    const onLoadTotalProblems = (filterGrade = '', filterCompName = '') => {
+        firestore.collection('problems')
+            .orderBy('problemName', 'desc')
             .get()
-            .then(questionRef => {
-                let tempTotalQuestions = [];
-                questionRef.docs.forEach(item => {
+            .then(problemRef => {
+                let tempTotalProblems = [];
+                problemRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
 
-                        let competitionName = data.competitionName ? data.competitionName : '';
+                        let tempCompName = data.competitionName ? data.competitionName : '';
+                        let tempGrade = data.grade ? data.grade : '';
 
-                        if (filterCompName !== '') {
-                            if (filterCompName !== competitionName) {
-                                tempTotalQuestions.push({
+                        if (filterGrade != '' && filterCompName != '') {
+                            if (filterGrade == tempGrade && filterCompName == tempCompName) {
+                                tempTotalProblems.push({
                                     id: item.id,
-                                    ...data
+                                    problemName: data.problemName
+                                });
+                            }
+                        } else if (filterGrade != '') {
+                            if (filterGrade == tempGrade) {
+                                tempTotalProblems.push({
+                                    id: item.id,
+                                    problemName: data.problemName
+                                });
+                            }
+                        } else if (filterCompName != '') {
+                            if (filterCompName == tempCompName) {
+                                tempTotalProblems.push({
+                                    id: item.id,
+                                    problemName: data.problemName
                                 });
                             }
                         } else {
-                            tempTotalQuestions.push({
+                            tempTotalProblems.push({
                                 id: item.id,
-                                ...data
+                                problemName: data.problemName
                             });
                         }
                     }
                 });
 
-                setTotalQuestions([...tempTotalQuestions]);
+                setTotalProblems(tempTotalProblems);
             })
             .catch(error => {
                 toast.error(error.message);
@@ -170,22 +194,32 @@ const Competitions = (props) => {
             .then(competitionRef => {
                 let tempCompetitions = [];
                 let no = 1;
+
                 competitionRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
 
-                        let grade = data.grade ? data.grade.toString() : '';
-                        let competitionName = data.competitionName ? data.competitionName : '';
+                        let tempGrade = data.grade ? data.grade.toString() : '';
+                        let tempCompetition = data.competitionName ? data.competitionName : '';
+                        let tempStartDate = data.startDate ? data.startDate.toString() : '';
+                        let tempEndDate = data.endDate ? data.endDate.toString() : '';
+                        let tempLimitTime = data.limitTime ? data.limitTime.toString() : '';
+                        let tempLimitWarningCount = data.limitWarningCount ? data.limitWarningCount.toString() : '';
 
+                        // if (tempStartDate.includes(searchVal)) {
+                        //     alert('dddd');
+                        // }
                         if (searchVal != '') {
-                            if (grade.includes(searchVal) || competitionName.includes(searchVal)
-                                ) {
+                            if (tempGrade.includes(searchVal) || tempCompetition.includes(searchVal)
+                            || tempLimitTime.includes(searchVal) || tempLimitWarningCount.includes(searchVal)
+                            || tempStartDate.includes(searchVal) || tempEndDate.includes(searchVal)) {
                                 tempCompetitions.push({
                                     no,
                                     id: item.id,
                                     ...data
                                 });
                                 no ++;
+
                             }
                         } else {
                             tempCompetitions.push({
@@ -208,7 +242,7 @@ const Competitions = (props) => {
 
     useEffect(() => {
         onLoadCompetitions();
-        onLoadTotalQuestions();
+        onLoadTotalProblems();
     }, []);
 
     const handleChangeRowsPerPage = (event) => {
@@ -223,8 +257,8 @@ const Competitions = (props) => {
     const onSaveCompetition = async (event) => {
         event.preventDefault();
 
-        if (selectedQuestions.length < 1) {
-            toast.warning('Please select correct answers!');
+        if (selectedProblems.length < 1) {
+            toast.warning('Please select problems!');
             return;
         }
 
@@ -233,15 +267,19 @@ const Competitions = (props) => {
         let competitionInfo = {
             grade,
             competitionName,
-            answers: totalQuestions,
-            correctAnswers: selectedQuestions,
+            selectedProblems,
+            limitTime,
+            limitWarningCount,
+            startDate,
+            endDate,
             dateTime: new Date()
         };
 
         if (selectedId == '') {
-
-            firestore.collection('problems')
-                .add(competitionInfo)
+            competitionInfo.status = true;
+            firestore.collection('competitions')
+                .doc(`${grade + '_' + competitionName}`)
+                .set(competitionInfo, {merge: true})
                 .then(docRef => {
                     toast.success('Successfully Added!');
                     onLoadCompetitions();
@@ -254,7 +292,7 @@ const Competitions = (props) => {
                     setLoading(false);
                 });
         } else {
-            firestore.collection('problems')
+            firestore.collection('competitions')
                 .doc(selectedId)
                 .set({
                     ...competitionInfo
@@ -264,13 +302,13 @@ const Competitions = (props) => {
                     let curRows = rows;
                     curRows = curRows.map((item, index) => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, no: (index + 1),  ...competitionInfo};
+                            item = {id: selectedId, no: (index + 1), status: item.status, ...competitionInfo};
                         }
 
                         return item;
                     });
 
-                    setRows([...curRows])
+                    setRows([...curRows]);
                     onToggleDialog();
                 })
                 .catch(error => {
@@ -285,12 +323,14 @@ const Competitions = (props) => {
     const onEditCompetition = (row) => {
         setSelectedId(row.id);
 
-        setCompetitionName(row.competitionName);
         setGrade(row.grade);
+        setCompetitionName(row.competitionName);
 
-        setTotalQuestions(row.answers);
-        setSelectedQuestions(row.correctAnswers);
-
+        setSelectedProblems(row.selectedProblems);
+        setLimitTime(row.limitTime);
+        setLimitWarningCount(row.limitWarningCount);
+        setStartDate(row.startDate);
+        setEndDate(row.endDate);
         setModalTitle('Set Competition');
 
         onToggleDialog();
@@ -301,19 +341,21 @@ const Competitions = (props) => {
 
         setGrade('');
         setCompetitionName('');
-        setTotalQuestions([]);
-        setSelectedQuestions([]);
+        setSelectedProblems([]);
+        setLimitTime(20);
+        setLimitWarningCount(20);
+        setStartDate('');
+        setEndDate('');
 
         setModalTitle('Set Competition');
         onToggleDialog();
     };
 
-    const onDeleteQuestion = async (competition_id) => {
+    const onDeleteCompetition = async (competition_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('users').doc(competition_id).set({
-            deleted: true
-        }, {merge: true})
+        firestore.collection('competitions').doc(competition_id)
+            .delete()
             .then(() => {
                 toast.success('Successfully deleted!');
                 let curRows = rows;
@@ -359,8 +401,12 @@ const Competitions = (props) => {
         return stabilizedThis.map((el) => el[0]);
     };
 
-    const onChangeCorrectAnswers = (event) => {
-        setSelectedQuestions(event.target.value);
+    const onSelectProblems = (selList, selItem) => {
+        setSelectedProblems([...selList]);
+    };
+
+    const onRemoveProblems = (selList, selItem) => {
+        setSelectedProblems([...selList]);
     };
 
     const ITEM_HEIGHT = 48;
@@ -376,16 +422,38 @@ const Competitions = (props) => {
     };
 
     const onDeleteAnswer = (key) => {
-        totalQuestions.splice(key, 1);
-        setTotalQuestions([...totalQuestions]);
+        totalProblems.splice(key, 1);
+        setTotalProblems([...totalProblems]);
 
-        setSelectedQuestions([]);
+        setSelectedProblems([]);
+    };
+
+    const onChangeStatus = (event, row) => {
+        row.status = event.target.checked;
+        setRows([...rows]);
+
+        let id = row.id;
+
+        firestore.collection('competitions')
+            .doc(id)
+            .set({
+                status: event.target.checked
+            }, {merge: true})
+            .then(() => {
+                toast.success('Successfully changed status!', {
+                    autoClose: 1000
+                });
+            }).catch(error => {
+                toast.error(error.message);
+                row.status = !row.status;
+                setRows([...rows]);
+            })
     };
 
     const onChangeAnswer = (val, key) => {
-        let items = [...totalQuestions];
+        let items = [...totalProblems];
         items[key] = val;
-        setTotalQuestions(items);
+        setTotalProblems(items);
     };
 
     const dialog = (<Dialog open={openDialog}
@@ -416,7 +484,10 @@ const Competitions = (props) => {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key} >
-                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                                <GradeButton number={val} onClick={() => {
+                                                    setGrade(val);
+                                                    onLoadCurrentInfo(val, competitionName);
+                                                }} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -436,8 +507,11 @@ const Competitions = (props) => {
                                 {
                                     ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
                                         return (
-                                            <div className='px-2'>
-                                                <CompetitionButton key={key} name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                            <div className='px-2' key={key}>
+                                                <CompetitionButton name={val} onClick={() => {
+                                                    setCompetitionName(val);
+                                                    onLoadCurrentInfo(grade, val);
+                                                }} selected={val === competitionName ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -445,36 +519,90 @@ const Competitions = (props) => {
                             </div>
                         </div>
                     </div>
-                    <div className='col-lg-5 col-sm-10 px-2'>
+                </div>
+                {
+                    grade && competitionName ?
+                        <div className='row py-2 align-items-center justify-content-center'>
+                            <div className='col-lg-10 col-sm-10 px-2'>
+                                <label>Selected Problems({selectedProblems.length})</label>
+                            </div>
+                            <div className='col-lg-10 col-sm-10 px-2 problems-select-multi'>
+                                <Multiselect
+                                    options={totalProblems}
+                                    selectedValues={selectedProblems}
+                                    onSelect={onSelectProblems}
+                                    onRemove={onRemoveProblems}
+                                    showArrow={true}
+                                    closeOnSelect={false}
+                                    displayValue='problemName'
+                                    placeholder={'Select Problems'}
+                                    showCheckbox={true}
+                                    />
+                            </div>
 
-                    </div>
+                        </div> : null
+                }
+                {
+                    grade && competitionName ?
+                        <div className='row py-2 align-items-center justify-content-center'>
+                            <div className='col-lg-5 col-sm-10 px-2'>
+                                <TextField
+                                    autoFocus
+                                    label="Limit Time"
+                                    type="number"
+                                    value={limitTime}
+                                    onChange={(e) => setLimitTime(e.target.value)}
+                                    fullWidth
+                                    required
+                                />
+                            </div>
+                            <div className='col-lg-5 col-sm-10 px-2'>
+                                <TextField
+                                    autoFocus
+                                    label="Limit Warning Count"
+                                    type="number"
+                                    value={limitWarningCount}
+                                    onChange={(e) => setLimitWarningCount(e.target.value)}
+                                    fullWidth
+                                    required
+                                />
+                            </div>
+                        </div> : null
+                }
+                {
+                    grade && competitionName ?
+                        <div className='row py-2 align-items-center justify-content-center'>
+                            <div className='col-lg-5 col-sm-10 px-2'>
+                                <TextField
+                                    autoFocus
+                                    label="Start Date"
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    fullWidth
+                                    InputLabelProps={{
+                                        shrink: true
+                                    }}
+                                />
+                            </div>
+                            <div className='col-lg-5 col-sm-10 px-2'>
+                                <TextField
+                                    autoFocus
+                                    label="End Date"
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    fullWidth
+                                    InputLabelProps={{
+                                        shrink: true
+                                    }}
+                                />
+                            </div>
+                        </div> : null
+                }
+                <div className='row' style={{height: '100px'}}>
                 </div>
-                <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-5 col-sm-10 px-2'>
-                        <FormControl fullWidth>
-                            <InputLabel id="demo-mutiple-checkbox-label">Select Questions</InputLabel>
-                            <Select
-                                labelId="demo-mutiple-checkbox-label"
-                                id="demo-mutiple-checkbox"
-                                multiple
-                                value={selectedQuestions}
-                                onChange={onChangeCorrectAnswers}
-                                input={<Input />}
-                                renderValue={(selected) => selected.join(', ')}
-                                MenuProps={MenuProps}
-                            >
-                                {totalQuestions.map((name) => (
-                                    <MenuItem key={name} value={name}>
-                                        <Checkbox checked={selectedQuestions.indexOf(name) > -1} />
-                                        <ListItemText primary={name} />
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </div>
-                    <div className='col-lg-5 col-sm-10 px-2'>
-                    </div>
-                </div>
+
                 <div className='row justify-content-center'>
                     <div className='col-10'>
                         {
@@ -503,7 +631,7 @@ const Competitions = (props) => {
             {
                 dialog
             }
-            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteQuestion(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>Competitions</h2>
@@ -598,10 +726,10 @@ const Competitions = (props) => {
                                                                     <CompetitionButton name={value} selected={true}/>
                                                                 </TableCell>
                                                             )
-                                                        } if (column.id == 'answers' || column.id == 'correctAnswers') {
+                                                        } if (column.id == 'selectedProblems') {
                                                             return (
                                                                 <TableCell key={`body_${key}`}>
-                                                                    {value.join(', ')}
+                                                                    {value.map(item => (item.problemName)).join(', ')}
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'dateTime') {
@@ -610,6 +738,22 @@ const Competitions = (props) => {
                                                                     {new Date(value.seconds * 1000).toLocaleString()}
                                                                 </TableCell>
                                                             )
+                                                        }
+                                                        else if (column.id == 'status') {
+                                                            return (
+                                                                <TableCell key={`body_${key}`}>
+                                                                    <FormControlLabel
+                                                                        control={
+                                                                            <Switch
+                                                                                checked={value}
+                                                                                onChange={(event) => onChangeStatus(event, row)}
+                                                                                name="checkedB"
+                                                                                color="primary"
+                                                                            />
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                                )
                                                         }
                                                         else if (column.id == 'action') {
                                                             return (
