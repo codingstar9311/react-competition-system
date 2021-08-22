@@ -194,6 +194,21 @@ const Users = (props) => {
                     setLoading(false);
                 });
         } else {
+            if (results.docs && results.docs.length > 0) {
+                for (let i = 0; i < results.docs.length; i++) {
+                    let result = results.docs[i];
+
+                    if (result.exists) {
+                        let data = result.data();
+                        if (data.email == email && result.id != selectedId) {
+                            setErrorMessage('Current email already exists!');
+                            setLoading(false);
+                            return;
+                        }
+                    }
+                }
+            }
+
             firestore.collection('users')
                 .doc(selectedId)
                 .set({

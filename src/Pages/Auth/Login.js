@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {auth, firestore, getUserDocument} from "../../firebase";
-import {Button, TextField} from "@material-ui/core";
+import {Button, Dialog, DialogActions, DialogContent, DialogTitle, makeStyles, TextField} from "@material-ui/core";
 
 import logo from '../../Assets/Images/logo.png';
 import {toast, ToastContainer} from "react-toastify";
@@ -10,7 +10,26 @@ import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import {Visibility, VisibilityOff} from "@material-ui/icons";
+import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
+import GradeButton from "../../Components/Admin/GradeButton";
+import Alert from "@material-ui/lab/Alert/Alert";
+import DialogButton from "../../Components/Common/DialogButton";
 const title = 'Math Tournament';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: '100%',
+    },
+    container: {
+        height: 'calc(100% - 10px)',
+    },
+    dlgBlueBorder: {
+        border: 'solid 2px',
+        borderRadius: '50px',
+        borderColor: COLOR_DLG_BORDER_BLUE
+    },
+
+}));
 
 const Login = (props) => {
     const [email, setEmail] = useState('');
@@ -19,6 +38,18 @@ const Login = (props) => {
     const [showRegisterDlg, setShowRegisterDlg] = useState(false);
 
     const [showPassword, setShowPassword] = useState(false);
+
+    const [loading, setLoading] = useState(false);
+    const [registerValues, setRegisterValues] = useState({
+        fullName: '',
+        email: '',
+        password: '',
+        grade: '6',
+        confirmPassword: '',
+        showPassword: false
+    });
+
+    const classes = useStyles();
 
     const onLogin = (event) => {
         event.preventDefault();
@@ -51,6 +82,44 @@ const Login = (props) => {
             });
     };
 
+    const onRegister = async (event) => {
+        event.preventDefault();
+        let registerInfo = {
+            fullName: registerValues.fullName,
+            email: registerValues.email,
+            grade: registerValues.grade,
+            password: registerValues.password,
+            dateTime: new Date(),
+            type: 'user',
+            status: false
+        };
+
+        setLoading(true);
+
+        let results = await firestore.collection('users')
+            .where('email', "==", registerValues.email)
+            .get();
+
+        if (results.docs && results.docs.length > 0) {
+            toast.error('Current email already exists!');
+            setLoading(false);
+            return;
+        }
+
+        firestore.collection('users').add(registerInfo)
+            .then(() => {
+                toast.success('Registered successfully. Please login');
+                setShowRegisterDlg(false);
+            })
+            .catch(error => {
+                    toast.error(error.message);
+                }
+            )
+            .finally(() => {
+                setLoading(false);
+            })
+    };
+
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
 
@@ -70,12 +139,133 @@ const Login = (props) => {
         }
     }, []);
 
+    const dialog = (<Dialog open={showRegisterDlg}
+                            fullWidth={true}
+                            maxWidth={'sm'}
+                            classes={{
+                                paper: classes.dlgBlueBorder
+                            }}
+                            onClose={(event, reason) => {
+                                if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                                    return;
+                                }
+                                setShowRegisterDlg(false)
+                            }}
+                            aria-labelledby="form-dialog-title">
+        <form onSubmit={onRegister} autoComplete="off">
+            <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>Register</DialogTitle>
+            <DialogContent>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2'>
+                        <TextField
+                            autoFocus
+                            label="Full Name"
+                            type="text"
+                            value={registerValues.fullName}
+                            onChange={(e) => {
+                                setRegisterValues({
+                                    ...registerValues, fullName: e.target.value
+                                })
+                            }}
+                            fullWidth
+                            required
+                        />
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2 text-center'>
+                        <div className='row align-items-center'>
+                            <div className='col-lg-3 col-sm-12 text-left'>
+                                Grade
+                            </div>
+                            <div className='col-lg-9 col-sm-12 justify-content-around' style={{display: "flex"}}>
+                                {
+                                    [6, 7, 8, 9, 10].map((val, key) => {
+                                        return (
+                                            <div className='px-2' key={key}>
+                                                <GradeButton number={val} onClick={() => {
+                                                    setRegisterValues({
+                                                        ...registerValues,
+                                                        grade: val
+                                                    });
+                                                }} selected={val == registerValues.grade ? true : false}/>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2'>
+                        <TextField
+                            autoFocus
+                            label="Email Address"
+                            autoComplete="false"
+                            value={registerValues.email}
+                            onChange={(e) => {
+                                setRegisterValues({
+                                    ...registerValues, email: e.target.value
+                                })
+                            }}
+                            type="email"
+                            fullWidth={true}
+                            required
+                        />
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2 text-center'>
+                        <FormControl fullWidth required>
+                            <InputLabel htmlFor="filled-adornment-password">Password</InputLabel>
+                            <Input
+                                id="standard-adornment-password"
+                                type={registerValues.showPassword ? 'text' : 'password'}
+                                value={registerValues.password}
+                                onChange={(e) => {
+                                    setRegisterValues({
+                                        ...registerValues,
+                                        password: e.target.value
+                                    })
+                                }}
+                                endAdornment={
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => {
+                                                setRegisterValues({
+                                                    ...registerValues,
+                                                    showPassword: !registerValues.showPassword
+                                                })
+                                            }}
+                                            edge="end"
+                                        >
+                                            {registerValues.showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                }
+                            />
+                        </FormControl>
+                    </div>
+                </div>
+            </DialogContent>
+            <DialogActions className='justify-content-center py-3'>
+                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setShowRegisterDlg(false)} title={'Cancel'}/>
+                <DialogButton disabled={loading} type='submit' width={'100px'} title='Register'/>
+            </DialogActions>
+        </form>
+    </Dialog>);
+
     return (
         <div className="container">
             <ToastContainer
                 position='top-center'
                 autoClose={2000}
                 traggle/>
+            {
+                dialog
+            }
             <div className="row">
                 <div className="col-sm-6 col-md-4 col-lg-3 px-0">
                     <div className="logo-wrapper">
@@ -132,7 +322,17 @@ const Login = (props) => {
                 </div>
                 <div className='row py-3'>
                     <div className='col-sm-12 col-lg-4' style={{color: 'blue'}}>
-                        Do you need to register? <Button type='button' variant="text" color="secondary" onClick={() => setShowRegisterDlg(true)}>Register</Button>
+                        Do you need to register? <Button type='button' variant="text" color="secondary" onClick={() => {
+                            setRegisterValues({
+                                fullName: '',
+                                email: '',
+                                password: '',
+                                grade: '6',
+                                confirmPassword: '',
+                                showPassword: false
+                            });
+                            setShowRegisterDlg(true);
+                    }}>Register</Button>
                     </div>
                 </div>
             </form>
