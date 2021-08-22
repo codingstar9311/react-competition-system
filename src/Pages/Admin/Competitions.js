@@ -431,13 +431,6 @@ const Competitions = (props) => {
         },
     };
 
-    const onDeleteAnswer = (key) => {
-        totalProblems.splice(key, 1);
-        setTotalProblems([...totalProblems]);
-
-        setSelectedProblems([]);
-    };
-
     const onChangeStatus = (event, row) => {
         row.status = event.target.checked;
         setRows([...rows]);
@@ -458,12 +451,6 @@ const Competitions = (props) => {
                 row.status = !row.status;
                 setRows([...rows]);
             })
-    };
-
-    const onChangeAnswer = (val, key) => {
-        let items = [...totalProblems];
-        items[key] = val;
-        setTotalProblems(items);
     };
 
     const dialog = (<Dialog open={openDialog}
