@@ -1,6 +1,6 @@
 import React from "react";
-import {makeStyles} from "@material-ui/core";
-import Button from "@material-ui/core/Button";
+import {makeStyles} from "@material-ui/core/index";
+import Button from "@material-ui/core/Button/index";
 import {COLOR_USER_SELECTED_BUTTON} from "../../Utils/ColorConstants";
 
 const useStyles = makeStyles((theme) => ({

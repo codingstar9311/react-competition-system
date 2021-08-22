@@ -17,7 +17,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
-import GradeButton from "../../Components/Admin/GradeButton";
+import GradeButton from "../../Components/Common/GradeButton";
 import DialogButton from "../../Components/Common/DialogButton";
 import {
     COLOR_ADMIN_MAIN,

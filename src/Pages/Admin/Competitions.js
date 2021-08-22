@@ -23,9 +23,9 @@ import {
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
 import DialogButton from "../../Components/Common/DialogButton";
-import GradeButton from "../../Components/Admin/GradeButton";
+import GradeButton from "../../Components/Common/GradeButton";
 
-import CompetitionButton from "../../Components/Admin/CompetitionButton";
+import CompetitionButton from "../../Components/Common/CompetitionButton";
 import {Multiselect} from "multiselect-react-dropdown";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";

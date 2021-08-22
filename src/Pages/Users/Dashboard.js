@@ -7,8 +7,8 @@ import {Delete as DeleteIcon, Edit as EditIcon, ExitToApp} from "@material-ui/ic
 import {toast, ToastContainer} from "react-toastify";
 import {Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow} from "@material-ui/core";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
-import GradeButton from "../../Components/Admin/GradeButton";
-import CompetitionButton from "../../Components/Admin/CompetitionButton";
+import GradeButton from "../../Components/Common/GradeButton";
+import CompetitionButton from "../../Components/Common/CompetitionButton";
 import FormControlLabel from "@material-ui/core/FormControlLabel/FormControlLabel";
 import Switch from "@material-ui/core/Switch/Switch";
 import IconButton from "@material-ui/core/IconButton";
@@ -17,14 +17,51 @@ import DialogButton from "../../Components/Common/DialogButton";
 
 const Dashboard = (props) => {
 
-    const [scoredList, setScoredList] = useState([]);
-    const [waitingList, setWaitingList] = useState([]);
+    const [scoredCompList, setScoredCompList] = useState([]);
+    const [waitingCompList, setWaitingList] = useState([]);
     const [availableCompList, setAvailableCompList] = useState([]);
+
+    const [scoredSetting, setScoredSetting] = useState({
+        page: 0,
+        rowsPerPage: 10,
+        order: 'dateTime',
+        orderBy: 'desc'
+    });
+
+    const scoredCompColumns = [
+        { id: 'no', label: 'No', width: 60 },
+        { id: 'grade', label: 'Grade', width: 80 },
+        { id: 'competitionName', label: 'Competition Name', width: 100 },
+        { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
+        { id: 'competitionTime', label: 'Competion Time', width: 100 },
+        { id: 'warningCount', label: 'Warning Count', width: 150 },
+        { id: 'dateTime', label: 'Competition Time', minWidth: 170 },
+        { id: 'score', label: 'Score', minWidth: 170 },
+        { id: 'action', label: 'Action', width: 100}
+    ];
+
+    const [waitingSetting, setWaitingSetting] = useState({
+        page: 0,
+        rowsPerPage: 10,
+        order: 'dateTime',
+        orderBy: 'desc'
+    });
+
+    const waitingCompColumns = [
+        { id: 'no', label: 'No', width: 60 },
+        { id: 'grade', label: 'Grade', width: 80 },
+        { id: 'competitionName', label: 'Competition Name', width: 100 },
+        { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
+        { id: 'competitionTime', label: 'Competion Time', width: 100 },
+        { id: 'warningCount', label: 'Warning Count', width: 150 },
+        { id: 'dateTime', label: 'Competition Time', minWidth: 170 },
+        { id: 'score', label: 'Score', minWidth: 170 }
+    ];
 
     const [availableSetting, setAvailableSetting] = useState({
         page: 0,
         rowsPerPage: 10,
-        order: 'asc',
+        order: 'dateTime',
         orderBy: 'desc'
     });
 
@@ -38,6 +75,8 @@ const Dashboard = (props) => {
         { id: 'dateTime', label: 'Created At', minWidth: 170 },
         { id: 'action', label: 'Action', width: 100}
     ];
+
+
 
     useEffect(() => {
         if (props.user) {
@@ -110,14 +149,268 @@ const Dashboard = (props) => {
                     </div>
             }
 
-        {/*    get scored table */}
-
-        {/*    get waiting table */}
-
-        {/*    get available table */}
+            {/*    get scored table */}
             {
                 props.user && props.user.status ?
-                    <div className='row py-1'>
+                    <div className='row' style={{paddingTop: '40px'}}>
+                        <div className='col-lg-6 col-sm-12'>
+                            <h3>Scored Competitions</h3>
+                        </div>
+                        <div className='col-lg-6 col-sm-12 text-right'>
+                            <TablePagination
+                                rowsPerPageOptions={[10, 25, 100]}
+                                component="div"
+                                count={scoredCompList.length}
+                                rowsPerPage={scoredSetting.rowsPerPage}
+                                page={scoredSetting.page}
+                                onPageChange={(event, newPage) => {
+                                    setScoredSetting({
+                                        ...scoredSetting,
+                                        page: newPage
+                                    })
+                                }}
+                                onRowsPerPageChange={(event) => {
+                                    setScoredSetting({
+                                        ...scoredSetting,
+                                        rowsPerPage: +event.target.value,
+                                        page: 0
+                                    });
+                                }}
+                            />
+                        </div>
+                    </div> : null
+            }
+            {
+                props.user && props.user.status ?
+                    <div className='row'>
+                        <div className='col-12'>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                                <Table stickyHeader aria-label="sticky table">
+                                    <TableHead>
+                                        <TableRow>
+                                            {scoredCompColumns.map((column, key) => (
+                                                <TableCell
+                                                    key={key}
+                                                    align={column.align}
+                                                    style={{ maxWidth: column.maxWidth, width: column.width}}
+                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                >
+                                                    <TableSortLabel active={scoredSetting.orderBy === column.id}
+                                                                    direction={scoredSetting.orderBy == column.id ? scoredSetting.order : 'asc'}
+                                                                    onClick={() => {
+                                                                        const isAsc = scoredSetting.orderBy === column.id && scoredSetting.order === 'asc';
+                                                                        setScoredSetting({
+                                                                            ...scoredSetting,
+                                                                            order: isAsc ? 'desc' : 'asc',
+                                                                            orderBy: column.id
+                                                                        });
+                                                                    }}
+                                                    >
+                                                        {column.label}
+                                                    </TableSortLabel>
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            stableSort(scoredCompList, getComparator(scoredSetting.order, scoredSetting.orderBy))
+                                                .slice(scoredSetting.page * scoredSetting.rowsPerPage, scoredSetting.page * scoredSetting.rowsPerPage + scoredSetting.rowsPerPage)
+                                                .map((row, key) => {
+                                                    return (
+                                                        <TableRow hover role="checkbox" tabIndex={-1} key={key}>
+                                                            {scoredCompColumns.map((column, subKey) => {
+                                                                const value = row[column.id];
+                                                                if (column.id == 'grade') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <GradeButton number={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'competitionName') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'selectedProblems') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {value.map(item => (item.problemName)).join(', ')}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'dateTime') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {new Date(value.seconds * 1000).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'action') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align={column.align}>
+                                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                        </TableCell>
+                                                                    );
+                                                                }
+                                                            })}
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                        {
+                                            scoredCompList != null && scoredCompList.length < 1 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={10} align="center">
+                                                        There is no data....
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : null
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </div>
+                    </div> : null
+            }
+
+            {/*    get waiting table */}
+            {
+                props.user && props.user.status ?
+                    <div className='row' style={{paddingTop: '40px'}}>
+                        <div className='col-lg-6 col-sm-12'>
+                            <h3>Waiting Competitions</h3>
+                        </div>
+                        <div className='col-lg-6 col-sm-12 text-right'>
+                            <TablePagination
+                                rowsPerPageOptions={[10, 25, 100]}
+                                component="div"
+                                count={waitingCompList.length}
+                                rowsPerPage={waitingSetting.rowsPerPage}
+                                page={waitingSetting.page}
+                                onPageChange={(event, newPage) => {
+                                    setWaitingSetting({
+                                        ...waitingSetting,
+                                        page: newPage
+                                    })
+                                }}
+                                onRowsPerPageChange={(event) => {
+                                    setWaitingSetting({
+                                        ...waitingSetting,
+                                        rowsPerPage: +event.target.value,
+                                        page: 0
+                                    });
+                                }}
+                            />
+                        </div>
+                    </div> : null
+            }
+            {
+                props.user && props.user.status ?
+                    <div className='row'>
+                        <div className='col-12'>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                                <Table stickyHeader aria-label="sticky table">
+                                    <TableHead>
+                                        <TableRow>
+                                            {waitingCompColumns.map((column, key) => (
+                                                <TableCell
+                                                    key={key}
+                                                    align={column.align}
+                                                    style={{ maxWidth: column.maxWidth, width: column.width}}
+                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                >
+                                                    <TableSortLabel active={waitingSetting.orderBy === column.id}
+                                                                    direction={waitingSetting.orderBy == column.id ? waitingSetting.order : 'asc'}
+                                                                    onClick={() => {
+                                                                        const isAsc = waitingSetting.orderBy === column.id && waitingSetting.order === 'asc';
+                                                                        setWaitingSetting({
+                                                                            ...waitingSetting,
+                                                                            order: isAsc ? 'desc' : 'asc',
+                                                                            orderBy: column.id
+                                                                        });
+                                                                    }}
+                                                    >
+                                                        {column.label}
+                                                    </TableSortLabel>
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            stableSort(waitingCompList, getComparator(waitingSetting.order, waitingSetting.orderBy))
+                                                .slice(waitingSetting.page * waitingSetting.rowsPerPage, waitingSetting.page * waitingSetting.rowsPerPage + waitingSetting.rowsPerPage)
+                                                .map((row, key) => {
+                                                    return (
+                                                        <TableRow hover role="checkbox" tabIndex={-1} key={key}>
+                                                            {waitingCompColumns.map((column, subKey) => {
+                                                                const value = row[column.id];
+                                                                if (column.id == 'grade') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <GradeButton number={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'competitionName') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'selectedProblems') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {value.map(item => (item.problemName)).join(', ')}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'dateTime') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {new Date(value.seconds * 1000).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'action') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align={column.align}>
+                                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                        </TableCell>
+                                                                    );
+                                                                }
+                                                            })}
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                        {
+                                            waitingCompList != null && waitingCompList.length < 1 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={10} align="center">
+                                                        There is no data....
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : null
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </div>
+                    </div> : null
+            }
+
+            {/*    get available table */}
+            {
+                props.user && props.user.status ?
+                    <div className='row' style={{paddingTop: '40px'}}>
                         <div className='col-lg-6 col-sm-12'>
                             <h3>Available Competitions</h3>
                         </div>
@@ -145,101 +438,105 @@ const Dashboard = (props) => {
                         </div>
                     </div> : null
             }
-
-            <div className='row'>
-                <div className='col-12'>
-                    <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
-                        <Table stickyHeader aria-label="sticky table">
-                            <TableHead>
-                                <TableRow>
-                                    {availableCompColumns.map((column, key) => (
-                                        <TableCell
-                                            key={key}
-                                            align={column.align}
-                                            style={{ maxWidth: column.maxWidth, width: column.width}}
-                                            className={column.id == 'action' ? 'text-right' : ''}
-                                        >
-                                            <TableSortLabel active={availableSetting.orderBy === column.id}
-                                                            direction={availableSetting.orderBy == column.id ? availableSetting.order : 'asc'}
-                                                            onClick={() => {
-                                                                const isAsc = availableSetting.orderBy === column.id && availableSetting.order === 'asc';
-                                                                setAvailableSetting({
-                                                                    ...availableSetting,
-                                                                    order: isAsc ? 'desc' : 'asc',
-                                                                    orderBy: column.id
-                                                                });
-                                                            }}
-                                            >
-                                                {column.label}
-                                            </TableSortLabel>
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {
-                                    stableSort(availableCompList, getComparator(availableSetting.order, availableSetting.orderBy))
-                                        .slice(availableSetting.page * availableSetting.rowsPerPage, availableSetting.page * availableSetting.rowsPerPage + availableSetting.rowsPerPage)
-                                        .map((row, key) => {
-                                            return (
-                                                <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                                    {availableCompColumns.map((column, subKey) => {
-                                                        const value = row[column.id];
-                                                        if (column.id == 'grade') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <GradeButton number={value} selected={true}/>
-                                                                </TableCell>
-                                                            )
-                                                        } else if (column.id == 'competitionName') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <CompetitionButton name={value} selected={true}/>
-                                                                </TableCell>
-                                                            )
-                                                        } else if (column.id == 'selectedProblems') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    {value.map(item => (item.problemName)).join(', ')}
-                                                                </TableCell>
-                                                            )
-                                                        } else if (column.id == 'dateTime') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    {new Date(value.seconds * 1000).toLocaleString()}
-                                                                </TableCell>
-                                                            )
-                                                        } else if (column.id == 'action') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
-                                                                </TableCell>
-                                                            )
-                                                        } else {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align={column.align}>
-                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                                </TableCell>
-                                                            );
-                                                        }
-                                                    })}
-                                                </TableRow>
-                                            );
-                                        })}
-                                {
-                                    availableCompList != null && availableCompList.length < 1 ? (
+            {
+                props.user && props.user.status ?
+                    <div className='row'>
+                        <div className='col-12'>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                                <Table stickyHeader aria-label="sticky table">
+                                    <TableHead>
                                         <TableRow>
-                                            <TableCell colSpan={10} align="center">
-                                                There is no data....
-                                            </TableCell>
+                                            {availableCompColumns.map((column, key) => (
+                                                <TableCell
+                                                    key={key}
+                                                    align={column.align}
+                                                    style={{ maxWidth: column.maxWidth, width: column.width}}
+                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                >
+                                                    <TableSortLabel active={availableSetting.orderBy === column.id}
+                                                                    direction={availableSetting.orderBy == column.id ? availableSetting.order : 'asc'}
+                                                                    onClick={() => {
+                                                                        const isAsc = availableSetting.orderBy === column.id && availableSetting.order === 'asc';
+                                                                        setAvailableSetting({
+                                                                            ...availableSetting,
+                                                                            order: isAsc ? 'desc' : 'asc',
+                                                                            orderBy: column.id
+                                                                        });
+                                                                    }}
+                                                    >
+                                                        {column.label}
+                                                    </TableSortLabel>
+                                                </TableCell>
+                                            ))}
                                         </TableRow>
-                                    ) : null
-                                }
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </div>
-            </div>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            stableSort(availableCompList, getComparator(availableSetting.order, availableSetting.orderBy))
+                                                .slice(availableSetting.page * availableSetting.rowsPerPage, availableSetting.page * availableSetting.rowsPerPage + availableSetting.rowsPerPage)
+                                                .map((row, key) => {
+                                                    return (
+                                                        <TableRow hover role="checkbox" tabIndex={-1} key={key}>
+                                                            {availableCompColumns.map((column, subKey) => {
+                                                                const value = row[column.id];
+                                                                if (column.id == 'grade') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <GradeButton number={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'competitionName') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'selectedProblems') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {value.map(item => (item.problemName)).join(', ')}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'dateTime') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            {new Date(value.seconds * 1000).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'action') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`}>
+                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align={column.align}>
+                                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                        </TableCell>
+                                                                    );
+                                                                }
+                                                            })}
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                        {
+                                            availableCompList != null && availableCompList.length < 1 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={10} align="center">
+                                                        There is no data....
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : null
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </div>
+                    </div> : null
+            }
+
+
         </div>
     )
 };

@@ -24,12 +24,12 @@ import {
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
 import DialogButton from "../../Components/Common/DialogButton";
-import GradeButton from "../../Components/Admin/GradeButton";
+import GradeButton from "../../Components/Common/GradeButton";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
-import CompetitionButton from "../../Components/Admin/CompetitionButton";
+import CompetitionButton from "../../Components/Common/CompetitionButton";
 import Yamde from "yamde";
 
 const useStyles = makeStyles((theme) => ({

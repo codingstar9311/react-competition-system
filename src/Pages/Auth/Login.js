@@ -11,7 +11,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import {Visibility, VisibilityOff} from "@material-ui/icons";
 import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
-import GradeButton from "../../Components/Admin/GradeButton";
+import GradeButton from "../../Components/Common/GradeButton";
 import Alert from "@material-ui/lab/Alert/Alert";
 import DialogButton from "../../Components/Common/DialogButton";
 const title = 'Math Tournament';
