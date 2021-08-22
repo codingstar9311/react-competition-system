@@ -4,13 +4,21 @@ import {Button, TextField} from "@material-ui/core";
 
 import logo from '../../Assets/Images/logo.png';
 import {toast, ToastContainer} from "react-toastify";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import Input from "@material-ui/core/Input";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import IconButton from "@material-ui/core/IconButton";
+import {Visibility, VisibilityOff} from "@material-ui/icons";
 const title = 'Math Tournament';
 
 const Login = (props) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [emailError, setEmailError] = useState('');
-    const [passwordError, setPasswordError] = useState('');
+
+    const [showRegisterDlg, setShowRegisterDlg] = useState(false);
+
+    const [showPassword, setShowPassword] = useState(false);
 
     const onLogin = (event) => {
         event.preventDefault();
@@ -79,35 +87,52 @@ const Login = (props) => {
                 <h1>{title}</h1>
             </div>
             <form className='py-2' onSubmit={(event) => onLogin(event)}>
-                <div className='col-sm-12 col-lg-4'>
-                    <div className='form-group'>
-                        <TextField style={{minWidth: '100%'}}
-                                   id={'email'}
-                                   error={emailError != '' ? true : false}
-                                   type={'email'}
-                                   label={"Email"}
-                                   variant='standard'
-                                   onChange={(e) => setEmail(e.target.value)}
-                                   onFocus={() => setEmailError('')}
-                                   helperText={emailError}
-                                   required/>
+                <div className='row'>
+                    <div className='col-sm-12 col-lg-4'>
+                        <div className='form-group'>
+                            <TextField fullWidth
+                                       id={'email'}
+                                       type={'email'}
+                                       label={"Email"}
+                                       variant='standard'
+                                       onChange={(e) => setEmail(e.target.value)}
+                                       required/>
+                        </div>
                     </div>
-                    <div className='form-group'>
-                        <TextField
-                            error={passwordError != '' ? true : false}
-                            style={{minWidth: '100%'}}
-                            id='password'
-                            type={'password'}
-                            label={"Password"}
-                            color={'primary'}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onFocus={() => setPasswordError('')}
-                            variant="standard" required/>
+                </div>
+                <div className='row'>
+                    <div className='col-sm-12 col-lg-4'>
+                        <FormControl fullWidth>
+                            <InputLabel htmlFor="standard-adornment-password">Password</InputLabel>
+                            <Input
+                                id="standard-adornment-password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                endAdornment={
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                }
+                            />
+                        </FormControl>
                     </div>
-                    <div className='form-group'>
+                </div>
+                <div className='row py-3'>
+                    <div className='col-sm-12 col-lg-4'>
                         <Button style={{width: '100px'}} type='submit' variant="contained" color="primary">
                             Login
                         </Button>
+                    </div>
+                </div>
+                <div className='row py-3'>
+                    <div className='col-sm-12 col-lg-4' style={{color: 'blue'}}>
+                        Do you need to register? <Button type='button' variant="text" color="secondary" onClick={() => setShowRegisterDlg(true)}>Register</Button>
                     </div>
                 </div>
             </form>
