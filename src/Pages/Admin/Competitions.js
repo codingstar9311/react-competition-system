@@ -710,36 +710,36 @@ const Competitions = (props) => {
                                         .map((row, key) => {
                                             return (
                                                 <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                                    {columns.map((column, key) => {
+                                                    {columns.map((column, subKey) => {
                                                         const value = row[column.id];
                                                         if (column.id == 'grade') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                <TableCell key={`body_${subKey}`} align='center'>
                                                                     <GradeButton number={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'competitionName') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align='center'>
+                                                                <TableCell key={`body_${subKey}`} align='center'>
                                                                     <CompetitionButton name={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'selectedProblems') {
                                                             return (
-                                                                <TableCell key={`body_${key}`}>
+                                                                <TableCell key={`body_${subKey}`}>
                                                                     {value.map(item => (item.problemName)).join(', ')}
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'dateTime') {
                                                             return (
-                                                                <TableCell key={`body_${key}`}>
+                                                                <TableCell key={`body_${subKey}`}>
                                                                     {new Date(value.seconds * 1000).toLocaleString()}
                                                                 </TableCell>
                                                             )
                                                         }
                                                         else if (column.id == 'status') {
                                                             return (
-                                                                <TableCell key={`body_${key}`}>
+                                                                <TableCell key={`body_${subKey}`}>
                                                                     <FormControlLabel
                                                                         control={
                                                                             <Switch
@@ -755,7 +755,7 @@ const Competitions = (props) => {
                                                         }
                                                         else if (column.id == 'action') {
                                                             return (
-                                                                <TableCell key={`body_${key}`} className='text-right'>
+                                                                <TableCell key={`body_${subKey}`} className='text-right'>
                                                                     <IconButton color='primary'
                                                                                 size='small'
                                                                                 onClick={() => onEditCompetition(row)}>
@@ -775,7 +775,7 @@ const Competitions = (props) => {
                                                             )
                                                         } else {
                                                             return (
-                                                                <TableCell key={`body_${key}`} align={column.align}>
+                                                                <TableCell key={`body_${subKey}`} align={column.align}>
                                                                     {column.format && typeof value === 'number' ? column.format(value) : value}
                                                                 </TableCell>
                                                             );

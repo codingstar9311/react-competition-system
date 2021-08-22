@@ -25,6 +25,8 @@ import {
     COLOR_DLG_BORDER_BLUE,
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
+import FormControlLabel from "@material-ui/core/FormControlLabel/FormControlLabel";
+import Switch from "@material-ui/core/Switch/Switch";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -49,6 +51,8 @@ const Users = (props) => {
         { id: 'email', label: 'Email', minWidth: 170 },
         { id: 'password', label: 'Password', minWidth: 170 },
         { id: 'grade', label: 'Grade', minWidth: 170 },
+        { id: 'status', label: 'Status', minWidth: 170 },
+        { id: 'dateTime', label: 'Created At', minWidth: 100},
         { id: 'action', label: 'Action', maxWidth: 60 },
     ];
 
@@ -95,7 +99,7 @@ const Users = (props) => {
     };
 
     const onLoadUsers = (searchVal = '') => {
-        firestore.collection('users').orderBy('fullName', 'asc')
+        firestore.collection('users').orderBy('dateTime', 'desc')
             .get()
             .then(usersRef => {
                 let tempUsers = [];
@@ -105,7 +109,7 @@ const Users = (props) => {
                         let data = item.data();
                         let {fullName, email, grade} = data;
                         grade = grade.toString();
-                        if (data.deleted != true && data.type != 'admin') {
+                        if (data.type === 'user') {
                             if (searchVal != '') {
                                 if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
                                     tempUsers.push({
@@ -161,6 +165,7 @@ const Users = (props) => {
             email,
             password,
             grade,
+            type: 'user'
         };
 
         let results = await firestore.collection('users')
@@ -168,6 +173,8 @@ const Users = (props) => {
             .get();
 
         if (selectedId == '') {
+            userInfo.status = true;
+            userInfo.dateTime = new Date();
             if (results.docs && results.docs.length > 0) {
                 setErrorMessage('Current email already exists!');
                 setLoading(false);
@@ -197,7 +204,12 @@ const Users = (props) => {
                     let curRows = rows;
                     curRows = curRows.map((item, index) => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, no: (index + 1), ...userInfo};
+                            item = {id: selectedId,
+                                no: (index + 1),
+                                status: item.status,
+                                dateTime: item.dateTime,
+                                ...userInfo
+                            };
                         }
 
                         return item;
@@ -242,9 +254,7 @@ const Users = (props) => {
     const onDeleteUser = async (user_id) => {
 
         setDeleteLoading(true);
-        firestore.collection('users').doc(user_id).set({
-            deleted: true
-        }, {merge: true})
+        firestore.collection('users').doc(user_id).delete()
             .then(() => {
                 toast.success('Successfully deleted!');
                 let curRows = rows;
@@ -262,6 +272,28 @@ const Users = (props) => {
                 setDeleteLoading(false);
                 setOpenDeleteDialog(false);
             });
+    };
+
+    const onChangeStatus = (event, row) => {
+        row.status = event.target.checked;
+        setRows([...rows]);
+
+        let id = row.id;
+
+        firestore.collection('users')
+            .doc(id)
+            .set({
+                status: event.target.checked
+            }, {merge: true})
+            .then(() => {
+                toast.success('Successfully changed status!', {
+                    autoClose: 1000
+                });
+            }).catch(error => {
+            toast.error(error.message);
+            row.status = !row.status;
+            setRows([...rows]);
+        })
     };
 
     const descendingComparator = (a, b, orderBy) => {
@@ -486,6 +518,27 @@ const Users = (props) => {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
                                                                     <GradeButton number={value} selected={true}/>
+                                                                </TableCell>
+                                                            )
+                                                        } else if (column.id == 'status') {
+                                                            return (
+                                                                <TableCell key={`body_${subKey}`}>
+                                                                    <FormControlLabel
+                                                                        control={
+                                                                            <Switch
+                                                                                checked={value}
+                                                                                onChange={(event) => onChangeStatus(event, row)}
+                                                                                name="checkedB"
+                                                                                color="secondary"
+                                                                            />
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                            )
+                                                        } else if (column.id == 'dateTime') {
+                                                            return (
+                                                                <TableCell key={`body_${subKey}`}>
+                                                                    {value ? new Date(value.seconds * 1000).toLocaleString() : null}
                                                                 </TableCell>
                                                             )
                                                         } else if (column.id == 'action') {
