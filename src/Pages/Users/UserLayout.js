@@ -1,9 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import Competition from "./Competition";
 
 const UserLayout = (props) => {
+
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
@@ -16,6 +18,7 @@ const UserLayout = (props) => {
                 props.history.push('/admin/dashboard');
             } else if (curUser.type === 'user') {
                 console.log('here--------');
+                setUser(curUser);
             } else {
                 localStorage.removeItem('user_info');
                 props.history.push('/login');
@@ -23,14 +26,12 @@ const UserLayout = (props) => {
         }
     }, []);
     return (
-        <>
-            <div className='container-fluid py-1 overflow-auto'>
-                <Switch>
-                    <Route path={'/user/dashboard'} component={Dashboard}/>
-                    <Route path={'/user/competition'} component={Competition}/>
-                </Switch>
-            </div>
-        </>
+        <div className='container-lg py-1 overflow-auto'>
+            <Switch>
+                <Route path={'/user/dashboard'} render={(props) => <Dashboard {...props} user={user}/>}/>
+                <Route path={'/user/competition'} render={(props) => <Competition {...props} user={user}/>}/>
+            </Switch>
+        </div>
     )
 };
 
