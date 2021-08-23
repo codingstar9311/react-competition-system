@@ -108,7 +108,8 @@ const Competitions = (props) => {
 
     const onLoadCurrentInfo = (insGrad = '', insCompetitionName = '') => {
         if (insGrad !== '' && insCompetitionName !== '') {
-            let docName = grade + "_" + competitionName;
+            setLoading(true);
+            let docName = insGrad + "_" + insCompetitionName;
             firestore.collection('competitions').doc(docName)
                 .get()
                 .then(compRef => {
@@ -138,7 +139,7 @@ const Competitions = (props) => {
                         tempEndDate = data.endDate ? data.endDate : '';
 
                     }
-                    setSelectedProblems([...selProblems]);
+                    setSelectedProblems(selProblems);
                     setLimitTime(tempLimitTime);
                     setLimitWarningCount(tempLimitWarningCount);
                     setStartDate(tempStartDate);
@@ -146,6 +147,9 @@ const Competitions = (props) => {
                 })
                 .catch((error) => {
                     toast.error(error.message);
+                })
+                .finally(() => {
+                    setLoading(false);
                 })
         }
     };
@@ -290,49 +294,24 @@ const Competitions = (props) => {
             dateTime: new Date()
         };
 
-        if (selectedId == '') {
-            competitionInfo.status = true;
-            firestore.collection('competitions')
-                .doc(`${grade + '_' + competitionName}`)
-                .set(competitionInfo, {merge: true})
-                .then(docRef => {
-                    toast.success('Successfully Added!');
-                    onLoadCompetitions();
-                    onToggleDialog();
-                })
-                .catch(error => {
-                    toast.error(error.message);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        } else {
-            firestore.collection('competitions')
-                .doc(selectedId)
-                .set({
-                    ...competitionInfo
-                }, {merge: true})
-                .then(docRef => {
-                    toast.success('Successfully Updated!');
-                    let curRows = rows;
-                    curRows = curRows.map((item, index) => {
-                        if (item.id == selectedId) {
-                            item = {id: selectedId, no: (index + 1), status: item.status, ...competitionInfo};
-                        }
+        let path = `${grade + '_' + competitionName}`;
 
-                        return item;
-                    });
-
-                    setRows([...curRows]);
-                    onToggleDialog();
-                })
-                .catch(error => {
-                    toast.error(error.message);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        }
+        firestore.collection('competitions')
+            .doc(path)
+            .set({
+                ...competitionInfo
+            }, {merge: true})
+            .then(docRef => {
+                toast.success('Successfully Saved!');
+                onLoadCompetitions();
+                onToggleDialog();
+            })
+            .catch(error => {
+                toast.error(error.message);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     const onRestartCompetition = (competition_id) => {
@@ -794,7 +773,7 @@ const Competitions = (props) => {
                                 {
                                     rows != null && rows.length < 1 ? (
                                         <TableRow>
-                                            <TableCell colSpan={10} align="center">
+                                            <TableCell colSpan={15} align="center">
                                                 There is no data....
                                             </TableCell>
                                         </TableRow>

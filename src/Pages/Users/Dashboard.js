@@ -327,7 +327,7 @@ const Dashboard = (props) => {
                                         {
                                             scoredCompList != null && scoredCompList.length < 1 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={10} align="center">
+                                                    <TableCell colSpan={15} align="center">
                                                         There is no data....
                                                     </TableCell>
                                                 </TableRow>
@@ -434,7 +434,7 @@ const Dashboard = (props) => {
                                         {
                                             waitingCompList != null && waitingCompList.length < 1 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={10} align="center">
+                                                    <TableCell colSpan={15} align="center">
                                                         There is no data....
                                                     </TableCell>
                                                 </TableRow>
@@ -541,7 +541,7 @@ const Dashboard = (props) => {
                                         {
                                             availableCompList != null && availableCompList.length < 1 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={10} align="center">
+                                                    <TableCell colSpan={15} align="center">
                                                         There is no data....
                                                     </TableCell>
                                                 </TableRow>
