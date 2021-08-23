@@ -52,6 +52,7 @@ const Competition = (props) => {
     const classes = useStyles();
     const [curProblemIndex, setCurProblemIndex] = useState(0);
     const [problems, setProblems] = useState([]);
+    const [limitTime, setLimitTime] = useState('');
 
     let competitionId = '';
 
@@ -97,13 +98,17 @@ const Competition = (props) => {
 
     const onNext = () => {
         let nextIndex = curProblemIndex + 1;
+        if (nextIndex > problems.length - 1) {
+            return;
+        }
+
         setCurProblemIndex(nextIndex);
     };
 
     const onPrev = () => {
         let prevIndex = curProblemIndex - 1;
         if (prevIndex < 0) {
-            prevIndex = 0;
+            return;
         }
         setCurProblemIndex(prevIndex);
     };
@@ -127,10 +132,10 @@ const Competition = (props) => {
                 <div className='col-lg-8 col-sm-12 text-center'>
                     <div className={classes.headerNumberContainer}>
                         {
-                            questionNumber.map((numberItem, key) => {
+                            problems.map((problemItem, key) => {
                                 return (
                                     <div style={{padding: '6px'}} key={key}>
-                                        <BtnCompetitionNumberSelect number={numberItem} status={'process'}/>
+                                        <BtnCompetitionNumberSelect number={key + 1} onClick={() => setCurProblemIndex(key)} status={'none'}/>
                                     </div>
                                 )
                             })
@@ -146,7 +151,7 @@ const Competition = (props) => {
                 <div className='col-12' style={{height: '350px'}}>
                     <ViewSlider
                         renderView={renderView}
-                        numViews={25}
+                        numViews={problems.length}
                         activeView={curProblemIndex}
                         animateHeight
                     />
