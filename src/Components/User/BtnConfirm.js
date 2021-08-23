@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         border: `solid 2px #6f6f6f`,
         minWidth: 'unset !important',
-        padding: '10px 25px',
+        padding: '10px 30px',
         textTransform: 'none',
         backgroundColor: '#ddd',
     }

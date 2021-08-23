@@ -30,6 +30,7 @@ import DialogContent from "@material-ui/core/DialogContent/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions/DialogActions";
 import Dialog from "@material-ui/core/Dialog/Dialog";
+import Paper from "@material-ui/core/Paper";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -152,7 +153,7 @@ const Dashboard = (props) => {
 
     const onLogout = () => {
         localStorage.removeItem('user_info');
-        props.history.push('/login');
+        props.history.push('/login', {});
     };
 
     const startConfirmDialog = (
@@ -238,7 +239,7 @@ const Dashboard = (props) => {
                 props.user && props.user.status ?
                     <div className='row'>
                         <div className='col-12'>
-                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}} component={Paper}>
                                 <Table stickyHeader aria-label="sticky table">
                                     <TableHead>
                                         <TableRow>
@@ -345,7 +346,7 @@ const Dashboard = (props) => {
                 props.user && props.user.status ?
                     <div className='row'>
                         <div className='col-12'>
-                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}} component={Paper}>
                                 <Table stickyHeader aria-label="sticky table">
                                     <TableHead>
                                         <TableRow>
@@ -452,7 +453,7 @@ const Dashboard = (props) => {
                 props.user && props.user.status ?
                     <div className='row'>
                         <div className='col-12'>
-                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}}>
+                            <TableContainer style={{maxHeight: '400px', overflow: 'auto'}} component={Paper}>
                                 <Table stickyHeader aria-label="sticky table">
                                     <TableHead>
                                         <TableRow>
