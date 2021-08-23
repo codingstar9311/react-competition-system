@@ -5,4 +5,6 @@ export const COLOR_DLG_BORDER_BLUE = '#306cb0';
 export const COLOR_DLG_BORDER_BLACK = '#111111';
 export const COLOR_DLG_TITLE = '#306cb0';
 
+export const COLOR_ANSWER_SELECT_BUTTON_BORDER = '#cbcdda';
+
 

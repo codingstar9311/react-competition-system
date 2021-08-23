@@ -3,7 +3,6 @@ import {Menu, MenuItem, ProSidebar, SidebarContent, SidebarHeader, SidebarFooter
 import {Link} from "react-router-dom";
 import {Dashboard, People, Menu as MenuIcon, ExitToApp, Close, ContactSupport, Business} from "@material-ui/icons/index";
 import 'react-pro-sidebar/dist/css/styles.css';
-import {auth} from "../../firebase";
 import {BusinessCenter} from "@material-ui/icons";
 
 const Sidebar = (props) => {

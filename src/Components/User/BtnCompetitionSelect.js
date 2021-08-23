@@ -14,11 +14,12 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
         border: 'solid 1px #000',
-        minWidth: 'unset !important'
+        minWidth: 'unset !important',
+        fontFamily: 'sans-serif'
     }
 }));
 
-const CompetitionSelectButton = (props) => {
+const BtnCompetitionSelect = (props) => {
 
     const [bgColor, setBgColor] = useState('');
     const [fontColor, setFontColor] = useState('');
@@ -44,4 +45,4 @@ const CompetitionSelectButton = (props) => {
     )
 };
 
-export default CompetitionSelectButton;
+export default BtnCompetitionSelect;

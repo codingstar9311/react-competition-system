@@ -26,7 +26,9 @@ const useStyles = makeStyles((theme) => ({
     dlgBlueBorder: {
         border: 'solid 2px',
         borderRadius: '50px',
-        borderColor: COLOR_DLG_BORDER_BLUE
+        borderColor: COLOR_DLG_BORDER_BLUE,
+        paddingBottom: '40px',
+        marginBottom: '14%'
     },
 
 }));
@@ -251,7 +253,7 @@ const Login = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setShowRegisterDlg(false)} title={'Cancel'}/>
+                <DialogButton disabled={loading} type='button' backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setShowRegisterDlg(false)} title={'Cancel'}/>
                 <DialogButton disabled={loading} type='submit' width={'100px'} title='Register'/>
             </DialogActions>
         </form>
@@ -321,7 +323,7 @@ const Login = (props) => {
                     </div>
                 </div>
                 <div className='row py-3'>
-                    <div className='col-sm-12 col-lg-4' style={{color: 'blue'}}>
+                    <div className='col-sm-12 col-lg-4' style={{color: COLOR_DLG_TITLE}}>
                         Do you need to register? <Button type='button' variant="text" color="secondary" onClick={() => {
                             setRegisterValues({
                                 fullName: '',

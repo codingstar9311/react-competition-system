@@ -26,7 +26,7 @@ const UserLayout = (props) => {
         }
     }, []);
     return (
-        <div className='container-lg py-1 overflow-auto'>
+        <div className='container-lg py-1'>
             <Switch>
                 <Route path={'/user/dashboard'} render={(props) => <Dashboard {...props} user={user}/>}/>
                 <Route path={'/user/competition'} render={(props) => <Competition {...props} user={user}/>}/>

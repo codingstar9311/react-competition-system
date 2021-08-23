@@ -13,7 +13,9 @@ const useStyles = makeStyles((theme) => ({
     dlgBlueBorder: {
         border: 'solid 2px',
         borderRadius: '50px',
-        borderColor: COLOR_DLG_BORDER_BLUE
+        borderColor: COLOR_DLG_BORDER_BLUE,
+        paddingBottom: '40px',
+        marginBottom: '14%'
     },
 }));
 

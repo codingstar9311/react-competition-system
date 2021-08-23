@@ -1,19 +1,52 @@
-import React, {useContext, useEffect, useState} from "react";
-import {auth, firestore} from "../../firebase";
-import {ProSidebar, MenuItem, Menu, SubMenu, FaHear} from "react-pro-sidebar";
+import React, {useEffect, useState} from "react";
+import {firestore} from "../../firebase";
 import 'react-pro-sidebar/dist/css/styles.css';
 import Button from "@material-ui/core/Button";
-import {Delete as DeleteIcon, Edit as EditIcon, ExitToApp} from "@material-ui/icons";
 import {toast, ToastContainer} from "react-toastify";
-import {Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow} from "@material-ui/core";
+import {
+    makeStyles,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow
+} from "@material-ui/core";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import GradeButton from "../../Components/Common/GradeButton";
 import CompetitionButton from "../../Components/Common/CompetitionButton";
-import FormControlLabel from "@material-ui/core/FormControlLabel/FormControlLabel";
-import Switch from "@material-ui/core/Switch/Switch";
-import IconButton from "@material-ui/core/IconButton";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 import DialogButton from "../../Components/Common/DialogButton";
+import {
+    COLOR_CANCEL_BUTTON,
+    COLOR_DLG_BORDER_BLACK,
+    COLOR_DLG_BORDER_BLUE,
+    COLOR_DLG_TITLE
+} from "../../Utils/ColorConstants";
+import {ExitToApp} from "@material-ui/icons";
+import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogActions from "@material-ui/core/DialogActions/DialogActions";
+import Dialog from "@material-ui/core/Dialog/Dialog";
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: '100%',
+    },
+    container: {
+        height: 'calc(100% - 10px)',
+    },
+    dlgBlueBorder: {
+        border: 'solid 2px',
+        borderRadius: '50px',
+        borderColor: COLOR_DLG_BORDER_BLUE,
+        paddingBottom: '40px',
+        marginBottom: '14%'
+    },
+
+}));
 
 const Dashboard = (props) => {
 
@@ -21,12 +54,16 @@ const Dashboard = (props) => {
     const [waitingCompList, setWaitingList] = useState([]);
     const [availableCompList, setAvailableCompList] = useState([]);
 
+    const [showStartConfirmDlg, setShowStartConfirmDlg] = useState(false);
+    const [selectedCompId, setSelectedCompId] = useState('');
     const [scoredSetting, setScoredSetting] = useState({
         page: 0,
         rowsPerPage: 10,
         order: 'dateTime',
         orderBy: 'desc'
     });
+
+    const classes = useStyles();
 
     const scoredCompColumns = [
         { id: 'no', label: 'No', width: 60 },
@@ -76,8 +113,6 @@ const Dashboard = (props) => {
         { id: 'action', label: 'Action', width: 100}
     ];
 
-
-
     useEffect(() => {
         if (props.user) {
             let grade = props.user.grade;
@@ -110,8 +145,9 @@ const Dashboard = (props) => {
         }
     }, [props.user]);
 
-    const onStartCompetition = (row) => {
-        toast.success('start competition' + row.id);
+    const onShowStartCompetitionDlg = (row) => {
+        setSelectedCompId(row.id);
+        setShowStartConfirmDlg(true);
     };
 
     const onLogout = () => {
@@ -119,15 +155,55 @@ const Dashboard = (props) => {
         props.history.push('/login');
     };
 
+    const startConfirmDialog = (
+        <Dialog
+            fullWidth={true}
+            maxWidth={"sm"}
+            open={showStartConfirmDlg}
+            classes={{
+                paper: classes.dlgBlueBorder
+            }}
+            onClose={() => {
+                setShowStartConfirmDlg(false);
+            }}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title" className='text-center' style={{color: COLOR_DLG_TITLE}}>{props.title}</DialogTitle>
+            <DialogContent>
+                <h2 style={{color: COLOR_DLG_TITLE, fontWeight: 'bolder'}} className='text-center'>Warning</h2>
+                <DialogContentText id="alert-dialog-description">
+                    <div className='py-3'>
+                        <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
+                            Do you really want to start?
+                        </h3>
+                        <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
+                            You cannot cancel while competition is running.
+                        </h3>
+                    </div>
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions className='justify-content-center'>
+                <DialogButton onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>
+                <DialogButton disabled={selectedCompId == '' ? true : false} width='120px' onClick={() => {
+                    props.history.push('/user/competition');
+                }} variant='contained' title='Yes' disabled={props.loading}/>
+            </DialogActions>
+        </Dialog>
+    );
+
     return (
         <div>
             <ToastContainer
                 position='top-center'
                 autoClose={2000}
                 traggle/>
+            {
+                startConfirmDialog
+            }
             <div className={'row py-2'}>
                 <div className='col-12 text-right'>
-                    <Button variant="text" color="secondary" onClick={() => {
+                    <Button type='button' variant="text" color="secondary" onClick={() => {
                         onLogout()
                     }}>Logout<ExitToApp></ExitToApp></Button>
                 </div>
@@ -153,30 +229,8 @@ const Dashboard = (props) => {
             {
                 props.user && props.user.status ?
                     <div className='row' style={{paddingTop: '40px'}}>
-                        <div className='col-lg-6 col-sm-12'>
-                            <h3>Scored Competitions</h3>
-                        </div>
-                        <div className='col-lg-6 col-sm-12 text-right'>
-                            <TablePagination
-                                rowsPerPageOptions={[10, 25, 100]}
-                                component="div"
-                                count={scoredCompList.length}
-                                rowsPerPage={scoredSetting.rowsPerPage}
-                                page={scoredSetting.page}
-                                onPageChange={(event, newPage) => {
-                                    setScoredSetting({
-                                        ...scoredSetting,
-                                        page: newPage
-                                    })
-                                }}
-                                onRowsPerPageChange={(event) => {
-                                    setScoredSetting({
-                                        ...scoredSetting,
-                                        rowsPerPage: +event.target.value,
-                                        page: 0
-                                    });
-                                }}
-                            />
+                        <div className='col-lg-12 col-sm-12 text-center'>
+                            <h3 style={{color: COLOR_DLG_TITLE}}>Scored Competitions</h3>
                         </div>
                     </div> : null
             }
@@ -248,7 +302,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
@@ -282,30 +336,8 @@ const Dashboard = (props) => {
             {
                 props.user && props.user.status ?
                     <div className='row' style={{paddingTop: '40px'}}>
-                        <div className='col-lg-6 col-sm-12'>
-                            <h3>Waiting Competitions</h3>
-                        </div>
-                        <div className='col-lg-6 col-sm-12 text-right'>
-                            <TablePagination
-                                rowsPerPageOptions={[10, 25, 100]}
-                                component="div"
-                                count={waitingCompList.length}
-                                rowsPerPage={waitingSetting.rowsPerPage}
-                                page={waitingSetting.page}
-                                onPageChange={(event, newPage) => {
-                                    setWaitingSetting({
-                                        ...waitingSetting,
-                                        page: newPage
-                                    })
-                                }}
-                                onRowsPerPageChange={(event) => {
-                                    setWaitingSetting({
-                                        ...waitingSetting,
-                                        rowsPerPage: +event.target.value,
-                                        page: 0
-                                    });
-                                }}
-                            />
+                        <div className='col-lg-12 col-sm-12 text-center'>
+                            <h3 style={{color: COLOR_DLG_TITLE}}>Waiting Competitions</h3>
                         </div>
                     </div> : null
             }
@@ -377,7 +409,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
@@ -411,30 +443,8 @@ const Dashboard = (props) => {
             {
                 props.user && props.user.status ?
                     <div className='row' style={{paddingTop: '40px'}}>
-                        <div className='col-lg-6 col-sm-12'>
-                            <h3>Available Competitions</h3>
-                        </div>
-                        <div className='col-lg-6 col-sm-12 text-right'>
-                            <TablePagination
-                                rowsPerPageOptions={[10, 25, 100]}
-                                component="div"
-                                count={availableCompList.length}
-                                rowsPerPage={availableSetting.rowsPerPage}
-                                page={availableSetting.page}
-                                onPageChange={(event, newPage) => {
-                                    setAvailableSetting({
-                                        ...availableSetting,
-                                        page: newPage
-                                    })
-                                }}
-                                onRowsPerPageChange={(event) => {
-                                    setAvailableSetting({
-                                        ...availableSetting,
-                                        rowsPerPage: +event.target.value,
-                                        page: 0
-                                    });
-                                }}
-                            />
+                        <div className='col-lg-12 col-sm-12 text-center'>
+                            <h3 style={{color: COLOR_DLG_TITLE}}>Available Competitions</h3>
                         </div>
                     </div> : null
             }
@@ -506,7 +516,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onStartCompetition(row)}/>
+                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
