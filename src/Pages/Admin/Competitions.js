@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon} from "@material-ui/icons";
+import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, Replay as ReplayIcon } from "@material-ui/icons";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -60,7 +60,7 @@ const Competitions = (props) => {
         { id: 'endDate', label: 'End Date', width: 140 },
         { id: 'status', label: 'Status', width: 80 },
         { id: 'dateTime', label: 'Created At', minWidth: 170 },
-        { id: 'action', label: 'Action', width: 80 }
+        { id: 'action', label: 'Action', width: 140, textCenter: 'center' }
     ];
 
     const [maxHeight, setMaxHeight] = useState('none');
@@ -84,7 +84,9 @@ const Competitions = (props) => {
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openRestartDialog, setOpenRestartDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [restartLoading, setRestartLoading] = useState(false);
 
     // table setting
     const [order, setOrder] = React.useState('asc');
@@ -331,6 +333,33 @@ const Competitions = (props) => {
                     setLoading(false);
                 });
         }
+    };
+
+    const onRestartCompetition = (competition_id) => {
+        setRestartLoading(true);
+        firestore.collection('users')
+            .get()
+            .then(async usersRef => {
+                for (let i = 0; i < usersRef.docs.length; i++) {
+                    if (usersRef.docs[i].exists) {
+                        let user_id = usersRef.docs[i].id;
+                        let competition_path = `users/${user_id}/competitions`;
+
+                        await firestore.collection(competition_path)
+                            .doc(competition_id)
+                            .delete();
+                    }
+                }
+
+                toast.success('Restarted successfully!');
+                setOpenRestartDialog(false);
+            })
+            .catch(error => {
+                toast.error(error.message);
+            })
+            .finally(() => {
+                setRestartLoading(false);
+            })
     };
 
     const onEditCompetition = (row) => {
@@ -593,7 +622,8 @@ const Competitions = (props) => {
             {
                 dialog
             }
-            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} loading={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to restart this competition?" open={openRestartDialog} disabled={restartLoading || selectedId === ''} onNo={() => {setOpenRestartDialog(false)}} onYes={() => onRestartCompetition(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
                 <div className='col-lg-4 col-sm-12'>
                     <h2 className='my-0'>Competitions</h2>
@@ -651,7 +681,7 @@ const Competitions = (props) => {
                                             key={key}
                                             align={column.align}
                                             style={{ maxWidth: column.maxWidth, width: column.width}}
-                                            className={column.id == 'action' ? 'text-right' : ''}
+                                            className={column.id == 'action' ? 'text-center' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
                                                             direction={orderBy == column.id ? order : 'asc'}
@@ -720,14 +750,26 @@ const Competitions = (props) => {
                                                         else if (column.id == 'action') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} className='text-right'>
+                                                                    <IconButton color='secondary'
+                                                                                size='small'
+                                                                                title="Restart this competition"
+                                                                                onClick={() => {
+                                                                                    setSelectedId(row.id);
+                                                                                    setOpenRestartDialog(true);
+                                                                                }}>
+                                                                        <ReplayIcon/>
+                                                                    </IconButton>
+                                                                    &nbsp;&nbsp;
                                                                     <IconButton color='primary'
                                                                                 size='small'
+                                                                                title="Edit Competition"
                                                                                 onClick={() => onEditCompetition(row)}>
                                                                         <EditIcon/>
                                                                     </IconButton>
                                                                     &nbsp;
                                                                     <IconButton color='secondary'
                                                                                 size='small'
+                                                                                title="Delete Competition"
                                                                                 onClick={() => {
                                                                                     setSelectedId(row.id);
                                                                                     setOpenDeleteDialog(true);
@@ -735,6 +777,7 @@ const Competitions = (props) => {
                                                                                 }}>
                                                                         <DeleteIcon/>
                                                                     </IconButton>
+
                                                                 </TableCell>
                                                             )
                                                         } else {

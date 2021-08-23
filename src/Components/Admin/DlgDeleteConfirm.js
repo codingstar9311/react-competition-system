@@ -7,13 +7,14 @@ import Button from "@material-ui/core/Button";
 import React from "react";
 import {commonStyle} from "../../Utils/CommonStyle.css";
 import {makeStyles} from "@material-ui/core";
-import {COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
+import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
+import BtnDialogConfirm from "../Common/BtnDialogConfirm";
 
 const useStyles = makeStyles((theme) => ({
     dlgBlueBorder: {
         border: 'solid 2px',
         borderRadius: '50px',
-        borderColor: COLOR_DLG_BORDER_BLUE,
+        paddingTop: '40px',
         paddingBottom: '40px',
         marginBottom: '14%'
     },
@@ -44,12 +45,8 @@ const DlgDeleteConfirm = (props) => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions className='justify-content-center'>
-                <Button onClick={props.onNo} variant='contained' disabled={props.initLoading} color="secondary">
-                    No
-                </Button>
-                <Button onClick={props.onYes} variant='contained' disabled={props.initLoading} color="primary" autoFocus>
-                    Yes
-                </Button>
+                <BtnDialogConfirm onClick={props.onNo} disabled={props.disabled} title='No' backgroundColor={props.disabled ? '#ddd' : COLOR_CANCEL_BUTTON}/>
+                <BtnDialogConfirm onClick={props.onYes} title='Yes' disabled={props.disabled} backgroundColor={props.disabled ? '#ddd' : COLOR_DLG_BORDER_BLUE}/>
             </DialogActions>
         </Dialog>
     )
