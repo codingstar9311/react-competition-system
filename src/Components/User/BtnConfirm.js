@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
         minWidth: 'unset !important',
         padding: '10px 30px',
         textTransform: 'none',
-        backgroundColor: '#ddd',
+        backgroundColor: '#ddd'
     }
 }));
 
@@ -29,7 +29,7 @@ const BtnConfirm = (props) => {
 
     const classes = useStyles();
     return (
-        <Button className={classes.root} style={props.style} onClick={props.onClick}>
+        <Button className={classes.root} disabled={props.disabled} style={props.style} onClick={props.onClick}>
             {props.title}
         </Button>
     )

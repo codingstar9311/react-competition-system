@@ -72,7 +72,6 @@ const Competition = (props) => {
                         let data = competitionRef.data();
                         let selectedProblems = data.selectedProblems ? data.selectedProblems : [];
 
-                        let tempProblems = [];
                         selectedProblems.forEach(async item => {
                             let problemId = item.id;
 
@@ -86,6 +85,7 @@ const Competition = (props) => {
                                     answers: dataProblem.answers ? dataProblem.answers : []
                                 }])
                             }
+                            toast.success(problemRef.id);
                         });
                     }
                 })
@@ -184,10 +184,10 @@ const Competition = (props) => {
                 <div className='col-lg-6 col-sm-12'>
                     <div className='row'>
                         <div className='col-6'>
-                            <BtnConfirm title='Back' onClick={onPrev} />
+                            <BtnConfirm title='Back' disabled={curProblemIndex == 0 ? true : false} onClick={onPrev} />
                         </div>
                         <div className='col-6'>
-                            <BtnConfirm style={{float: 'right'}} onClick={onNext} title='Next'/>
+                            <BtnConfirm style={{float: 'right'}} disabled={curProblemIndex == problems.length - 1 ? true : false} onClick={onNext} title='Next'/>
                         </div>
                     </div>
                 </div>
