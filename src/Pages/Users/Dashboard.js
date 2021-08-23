@@ -160,7 +160,7 @@ const Dashboard = (props) => {
             pathname: '/user/competition',
             state: {
                 competitionId: selectedCompId,
-                user: props
+                user: props.user
             }
         });
     };
