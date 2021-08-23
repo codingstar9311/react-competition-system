@@ -4,8 +4,9 @@ import {ProSidebar, MenuItem, Menu, SubMenu, FaHear} from "react-pro-sidebar";
 import 'react-pro-sidebar/dist/css/styles.css';
 import {makeStyles} from "@material-ui/core";
 import {COLOR_DLG_BORDER_BLACK, COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
-import BtnCompetitionSelect from "../../Components/User/BtnCompetitionSelect";
+import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 import BtnAnswerNumber from "../../Components/User/BtnAnswerNumber";
+import BtnConfirm from "../../Components/User/BtnConfirm";
 const guestionNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -55,7 +56,7 @@ const Competition = (props) => {
                             guestionNumbers.map((numberItem, key) => {
                                 return (
                                     <div style={{padding: '6px'}} key={key}>
-                                        <BtnCompetitionSelect number={numberItem} status={'done'}/>
+                                        <BtnCompetitionNumberSelect number={numberItem} status={'process'}/>
                                     </div>
                                 )
                             })
@@ -90,6 +91,23 @@ const Competition = (props) => {
                             <BtnAnswerNumber title='E'/>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div className='row py-2'>
+                <div className='col-lg-3 col-sm-12'>
+                </div>
+                <div className='col-lg-6 col-sm-12'>
+                    <div className='row'>
+                        <div className='col-6'>
+                            <BtnConfirm title='Back'/>
+                        </div>
+                        <div className='col-6'>
+                            <BtnConfirm style={{float: 'right'}}  title='Next'/>
+                        </div>
+                    </div>
+                </div>
+                <div className='col-lg-3 col-sm-12 text-right'>
+                    <BtnConfirm title='Submit Test' style={{float: 'right'}}/>
                 </div>
             </div>
         </div>

@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const BtnCompetitionSelect = (props) => {
+const BtnCompetitionNumberSelect = (props) => {
 
     const [bgColor, setBgColor] = useState('');
     const [fontColor, setFontColor] = useState('');
@@ -45,4 +45,4 @@ const BtnCompetitionSelect = (props) => {
     )
 };
 
-export default BtnCompetitionSelect;
+export default BtnCompetitionNumberSelect;
