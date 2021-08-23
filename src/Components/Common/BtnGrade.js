@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const GradeButton = (props) => {
+const BtnGrade = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
@@ -27,4 +27,4 @@ const GradeButton = (props) => {
     )
 };
 
-export default GradeButton;
+export default BtnGrade;

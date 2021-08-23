@@ -11,9 +11,9 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import {Visibility, VisibilityOff} from "@material-ui/icons";
 import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
-import GradeButton from "../../Components/Common/GradeButton";
+import BtnGrade from "../../Components/Common/BtnGrade";
 import Alert from "@material-ui/lab/Alert/Alert";
-import DialogButton from "../../Components/Common/DialogButton";
+import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 const title = 'Math Tournament';
 
 const useStyles = makeStyles((theme) => ({
@@ -185,7 +185,7 @@ const Login = (props) => {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key}>
-                                                <GradeButton number={val} onClick={() => {
+                                                <BtnGrade number={val} onClick={() => {
                                                     setRegisterValues({
                                                         ...registerValues,
                                                         grade: val
@@ -253,8 +253,8 @@ const Login = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <DialogButton disabled={loading} type='button' backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setShowRegisterDlg(false)} title={'Cancel'}/>
-                <DialogButton disabled={loading} type='submit' width={'100px'} title='Register'/>
+                <BtnDialogConfirm disabled={loading} type='button' backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setShowRegisterDlg(false)} title={'Cancel'}/>
+                <BtnDialogConfirm disabled={loading} type='submit' width={'100px'} title='Register'/>
             </DialogActions>
         </form>
     </Dialog>);

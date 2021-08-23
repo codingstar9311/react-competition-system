@@ -23,8 +23,9 @@ const useStyles = makeStyles((theme) => ({
         marginBottom: '14%'
     },
     headerNumberContainer: {
-        border: `solid 2px ${COLOR_DLG_BORDER_BLACK}`,
-        borderRadius: 20,
+        width: '100%',
+        border: `solid 2px #6f6f6f`,
+        borderRadius: 28,
         padding: '16px',
         display: 'flex',
         flexWrap: 'wrap',

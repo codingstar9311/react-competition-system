@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const DialogButton = (props) => {
+const BtnDialogConfirm = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
@@ -33,4 +33,4 @@ const DialogButton = (props) => {
     )
 };
 
-export default DialogButton;
+export default BtnDialogConfirm;

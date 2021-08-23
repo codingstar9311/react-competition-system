@@ -23,13 +23,13 @@ import {
     COLOR_DLG_BORDER_BLUE,
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
-import DialogButton from "../../Components/Common/DialogButton";
-import GradeButton from "../../Components/Common/GradeButton";
+import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
+import BtnGrade from "../../Components/Common/BtnGrade";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
-import CompetitionButton from "../../Components/Common/CompetitionButton";
+import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import Yamde from "yamde";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 
@@ -350,7 +350,7 @@ const Problems = (props) => {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key} >
-                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                                <BtnGrade number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -379,7 +379,7 @@ const Problems = (props) => {
                                     ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key}>
-                                                <CompetitionButton name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                                <BtnCompetitionName name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -465,8 +465,8 @@ const Problems = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
-                <DialogButton disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
+                <BtnDialogConfirm disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
+                <BtnDialogConfirm disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
             </DialogActions>
         </form>
     </Dialog>);
@@ -566,13 +566,13 @@ const Problems = (props) => {
                                                         if (column.id == 'grade') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <GradeButton number={value} selected={true}/>
+                                                                    <BtnGrade number={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'competitionName') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <CompetitionButton name={value} selected={true}/>
+                                                                    <BtnCompetitionName name={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'answers' || column.id == 'correctAnswers') {

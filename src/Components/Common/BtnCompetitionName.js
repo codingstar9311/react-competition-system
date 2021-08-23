@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const CompetitionButton = (props) => {
+const BtnCompetitionName = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
@@ -30,4 +30,4 @@ const CompetitionButton = (props) => {
     )
 };
 
-export default CompetitionButton;
+export default BtnCompetitionName;

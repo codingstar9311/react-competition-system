@@ -17,8 +17,8 @@ import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
-import GradeButton from "../../Components/Common/GradeButton";
-import DialogButton from "../../Components/Common/DialogButton";
+import BtnGrade from "../../Components/Common/BtnGrade";
+import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import {
     COLOR_ADMIN_MAIN,
     COLOR_CANCEL_BUTTON,
@@ -352,7 +352,7 @@ const Users = (props) => {
                                     [6, 7, 8, 9, 10].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key}>
-                                                <GradeButton number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
+                                                <BtnGrade number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
                                             </div>
                                         )
                                     })
@@ -408,8 +408,8 @@ const Users = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center py-3'>
-                <DialogButton disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
-                <DialogButton disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
+                <BtnDialogConfirm disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
+                <BtnDialogConfirm disabled={loading} type='submit' width={'100px'} title={selectedId != '' ? 'Update' : 'Add'}/>
             </DialogActions>
         </form>
     </Dialog>);
@@ -509,7 +509,7 @@ const Users = (props) => {
                                                         if (column.id == 'grade') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <GradeButton number={value} selected={true}/>
+                                                                    <BtnGrade number={value} selected={true}/>
                                                                 </TableCell>
                                                             )
                                                         } else if (column.id == 'status') {

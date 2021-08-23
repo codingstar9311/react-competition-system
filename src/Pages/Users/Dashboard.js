@@ -14,10 +14,10 @@ import {
     TableRow
 } from "@material-ui/core";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
-import GradeButton from "../../Components/Common/GradeButton";
-import CompetitionButton from "../../Components/Common/CompetitionButton";
+import BtnGrade from "../../Components/Common/BtnGrade";
+import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
-import DialogButton from "../../Components/Common/DialogButton";
+import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import {
     COLOR_CANCEL_BUTTON,
     COLOR_DLG_BORDER_BLACK,
@@ -184,8 +184,8 @@ const Dashboard = (props) => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions className='justify-content-center'>
-                <DialogButton onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>
-                <DialogButton disabled={selectedCompId == '' ? true : false} width='120px' onClick={() => {
+                <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>
+                <BtnDialogConfirm disabled={selectedCompId == '' ? true : false} width='120px' onClick={() => {
                     props.history.push('/user/competition');
                 }} variant='contained' title='Yes' disabled={props.loading}/>
             </DialogActions>
@@ -278,13 +278,13 @@ const Dashboard = (props) => {
                                                                 if (column.id == 'grade') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <GradeButton number={value} selected={true}/>
+                                                                            <BtnGrade number={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'competitionName') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                            <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'selectedProblems') {
@@ -302,7 +302,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
@@ -385,13 +385,13 @@ const Dashboard = (props) => {
                                                                 if (column.id == 'grade') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <GradeButton number={value} selected={true}/>
+                                                                            <BtnGrade number={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'competitionName') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                            <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'selectedProblems') {
@@ -409,7 +409,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
@@ -492,13 +492,13 @@ const Dashboard = (props) => {
                                                                 if (column.id == 'grade') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <GradeButton number={value} selected={true}/>
+                                                                            <BtnGrade number={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'competitionName') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
-                                                                            <CompetitionButton name={value} selected={true}/>
+                                                                            <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'selectedProblems') {
@@ -516,7 +516,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <DialogButton title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else {
