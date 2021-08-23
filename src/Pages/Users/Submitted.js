@@ -59,11 +59,6 @@ const Submitted = (props) => {
 
     const classes = useStyles();
 
-    useEffect(() => {
-        if (props.user) {
-        }
-    }, [props.user]);
-
     const onLogout = () => {
         localStorage.removeItem('user_info');
         props.history.push('/login');

@@ -54,6 +54,7 @@ const Competition = (props) => {
     const [curProblemIndex, setCurProblemIndex] = useState(0);
     const [timeLeft, setTimeLeft] = useState(null);
 
+    const [initLoading, setInitLoading] = useState(false);
     const [currentCompetition, setCurrentCompetition] = useState(null);
 
     let timeInterval = null;
@@ -94,7 +95,8 @@ const Competition = (props) => {
                                             tempProblems.push({
                                                 id: problemRef.id,
                                                 question: dataProblem.question,
-                                                answers: dataProblem.answers ? dataProblem.answers : []
+                                                answers: dataProblem.answers ? dataProblem.answers : [],
+                                                correctAnswer: dataProblem.correctAnswer
                                             });
                                         }
                                     }
@@ -106,7 +108,6 @@ const Competition = (props) => {
                                         grade: competitionData.grade,
                                         competitionName: competitionData.competitionName,
                                         problems: tempProblems,
-                                        correctAnswer: competitionData.correctAnswer,
                                         limitTime: competitionData.limitTime,
                                         limitWarningCount: competitionData.limitWarningCount,
                                         startedAt: new Date(),
@@ -151,7 +152,7 @@ const Competition = (props) => {
     }, [props.user]);
 
     useEffect(() => {
-        if (timeLeft < 0) {
+        if (timeLeft != null && timeLeft < 0) {
             onEndTime();
             setTimeLeft(0);
             props.history.push('/user/submitted');
