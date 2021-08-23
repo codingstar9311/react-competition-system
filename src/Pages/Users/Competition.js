@@ -52,7 +52,7 @@ const Competition = (props) => {
     const classes = useStyles();
 
     const [curProblemIndex, setCurProblemIndex] = useState(0);
-    const [timeLeft, setTimeLeft] = useState('');
+    const [timeLeft, setTimeLeft] = useState(0);
 
     const [currentCompetition, setCurrentCompetition] = useState(null);
 
@@ -66,11 +66,13 @@ const Competition = (props) => {
             let user_id = props.user.id;
             let competition_path = `users/${user_id}/competitions`;
 
-            firestore.collection(competition_path).doc(competition_path).get()
+            firestore.collection(competition_path).doc(competitionId).get()
                 .then(competitionRef => {
                     if (competitionRef.exists) {
                         let competitionData = competitionRef.data();
                         setCurrentCompetition({...competitionData});
+
+                        onStartTimer(competitionData);
                     } else {
                         // get problems form selected competition
                         firestore.collection('competitions')
@@ -107,7 +109,7 @@ const Competition = (props) => {
                                         problems: tempProblems,
                                         limitTime: competitionData.limitTime,
                                         limitWarningCount: competitionData.limitWarningCount,
-                                        endTime: new Date(currentTime.getTime() + competitionData.limitTime * 60000)
+                                        endTime: new Date(currentTime.getTime() + competitionData.limitTime * 60000 + 2000)
                                     };
                                     await firestore.collection(competition_path)
                                         .doc(competitionId)
@@ -116,6 +118,10 @@ const Competition = (props) => {
                                     setCurrentCompetition({
                                         ...setInfo
                                     });
+
+                                    console.log(setInfo);
+
+                                    onStartTimer(setInfo, false);
                                 }
                             })
                             .catch(error => {
@@ -138,10 +144,43 @@ const Competition = (props) => {
 
     }, [props.user]);
 
-    const onStartTimer = () => {
-        timeInterval = setInterval(() => {
+    useEffect(() => {
+        if (timeLeft < 0) {
+            onEndTime();
+            setTimeLeft(0);
+            props.history.push('/user/dashboard');
+        }
+    }, [timeLeft]);
 
+    const onStartTimer = (competitionData, bExist = true) => {
+        timeInterval = setInterval(() => {
+            let curTime = new Date();
+            let endTime = null;
+            if (bExist == true) {
+                endTime = new Date(competitionData.endTime.seconds * 1000);
+            } else {
+                endTime = competitionData.endTime;
+            }
+            let diff = endTime.getTime() - curTime.getTime();
+            setTimeLeft(Math.floor(diff / 1000));
         }, 1000);
+    };
+
+    const getTimeLeftFormat = (insTimeLeft) => {
+        let minute = Math.floor(insTimeLeft / 60);
+        if (minute < 10) {
+            minute = "0" + minute;
+        }
+        let seconds = insTimeLeft % 60;
+        if (seconds < 10) {
+            seconds = "0" + seconds;
+        }
+
+        return [minute, seconds].join(":");
+    };
+
+    const onEndTime = () => {
+        clearInterval(timeInterval);
     };
 
     const onNext = () => {
@@ -241,7 +280,7 @@ const Competition = (props) => {
                         </div>
                         <div className='col-lg-2 col-sm-12 text-center'>
                             <h4 style={{color: '#6f6f6f'}}>Time Left</h4>
-                            <h3>{timeLeft}</h3>
+                            <h3 className={timeLeft <= 120 ? 'blink-warning' : ''}>{getTimeLeftFormat(timeLeft)}</h3>
                         </div>
                     </div>
                     <div className='row py-2'>

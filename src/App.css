@@ -41,3 +41,21 @@ body {
   text-align: center;
   padding-top: 100px;
 }
+
+.blink-warning {
+  color: red;
+  font-weight: bolder;
+  animation: blink-warning 1s steps(1, end) infinite;
+}
+
+@keyframes blink-warning {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
