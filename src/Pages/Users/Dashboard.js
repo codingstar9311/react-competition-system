@@ -192,10 +192,10 @@ const Dashboard = (props) => {
                 </div>
             </DialogContent>
             <DialogActions className='justify-content-center'>
-                <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>
+                <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.initLoading} backgroundColor={COLOR_CANCEL_BUTTON}/>
                 <BtnDialogConfirm disabled={selectedCompId == '' ? true : false} width='120px'
                                   onClick={() => onGotoCompetition()}
-                                  variant='contained' title='Yes' disabled={props.loading}/>
+                                  variant='contained' title='Yes' disabled={props.initLoading}/>
             </DialogActions>
         </Dialog>
     );

@@ -36,3 +36,8 @@ body {
 /*.pro-sidebar > .pro-sidebar-inner {*/
 /*  background-color: #306cb0 !important;*/
 /*}*/
+
+.component-loading {
+  text-align: center;
+  padding-top: 100px;
+}

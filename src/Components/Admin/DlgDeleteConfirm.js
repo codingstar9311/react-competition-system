@@ -44,10 +44,10 @@ const DlgDeleteConfirm = (props) => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions className='justify-content-center'>
-                <Button onClick={props.onNo} variant='contained' disabled={props.loading} color="secondary">
+                <Button onClick={props.onNo} variant='contained' disabled={props.initLoading} color="secondary">
                     No
                 </Button>
-                <Button onClick={props.onYes} variant='contained' disabled={props.loading} color="primary" autoFocus>
+                <Button onClick={props.onYes} variant='contained' disabled={props.initLoading} color="primary" autoFocus>
                     Yes
                 </Button>
             </DialogActions>
