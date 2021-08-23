@@ -182,16 +182,14 @@ const Dashboard = (props) => {
             <DialogTitle id="alert-dialog-title" className='text-center' style={{color: COLOR_DLG_TITLE}}>{props.title}</DialogTitle>
             <DialogContent>
                 <h2 style={{color: COLOR_DLG_TITLE, fontWeight: 'bolder'}} className='text-center'>Warning</h2>
-                <DialogContentText id="alert-dialog-description">
-                    <div className='py-3'>
-                        <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
-                            Do you really want to start?
-                        </h3>
-                        <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
-                            You cannot cancel while competition is running.
-                        </h3>
-                    </div>
-                </DialogContentText>
+                <div className='py-3'>
+                    <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
+                        Do you really want to start?
+                    </h3>
+                    <h3 style={{fontWeight: 'bold', color: COLOR_DLG_BORDER_BLACK}} className='text-center'>
+                        You cannot cancel while competition is running.
+                    </h3>
+                </div>
             </DialogContent>
             <DialogActions className='justify-content-center'>
                 <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>

@@ -49,6 +49,8 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const initAnswers = ['A', 'B', 'C', 'D', 'E'];
+
 const Problems = (props) => {
 
     const columns = [
@@ -58,7 +60,7 @@ const Problems = (props) => {
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
         { id: 'question', label: 'Question Content', minWidth: 170 },
         { id: 'answers', label: 'Answers', minWidth: 170 },
-        { id: 'correctAnswers', label: 'Correct Answers', minWidth: 170 },
+        { id: 'correctAnswer', label: 'Correct Answer', minWidth: 170, textAlign: 'center'},
         { id: 'dateTime', label: 'Created At', minWidth: 170 },
         { id: 'action', label: 'Action', width: '140px' },
     ];
@@ -73,8 +75,8 @@ const Problems = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
-    const [answers, setAnswers] = useState([]);
-    const [correctAnswers, setCorrectAnswers] = useState([]);
+    const [answers, setAnswers] = useState(initAnswers);
+    const [correctAnswer, setCorrectAnswer] = useState('');
 
     const [rows, setRows] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -167,8 +169,8 @@ const Problems = (props) => {
     const onSaveProblem = async (event) => {
         event.preventDefault();
 
-        if (correctAnswers.length < 1) {
-            toast.warning('Please select correct answers!');
+        if (correctAnswer == undefined || correctAnswer == '') {
+            toast.warning('Please select correct answer!');
             return;
         }
 
@@ -180,7 +182,7 @@ const Problems = (props) => {
             grade,
             competitionName,
             answers,
-            correctAnswers,
+            correctAnswer,
             dateTime: new Date()
         };
 
@@ -237,7 +239,7 @@ const Problems = (props) => {
         setQuestion(row.question);
 
         setAnswers(row.answers);
-        setCorrectAnswers(row.correctAnswers);
+        setCorrectAnswer(row.correctAnswer);
 
         setModalTitle('Update Current Problem');
 
@@ -251,8 +253,8 @@ const Problems = (props) => {
 
         setGrade('');
         setCompetitionName('');
-        setAnswers([]);
-        setCorrectAnswers([]);
+        setAnswers([...initAnswers]);
+        setCorrectAnswer('');
 
         setModalTitle('Add New Problem');
         onToggleDialog();
@@ -282,8 +284,8 @@ const Problems = (props) => {
         });
     };
 
-    const onChangeCorrectAnswers = (event) => {
-        setCorrectAnswers(event.target.value);
+    const onChangeCorrectAnswer = (event) => {
+        setCorrectAnswer(event.target.value);
     };
 
     const ITEM_HEIGHT = 48;
@@ -302,7 +304,7 @@ const Problems = (props) => {
         answers.splice(key, 1);
         setAnswers([...answers]);
 
-        setCorrectAnswers([]);
+        setCorrectAnswer('');
     };
 
     const onChangeAnswer = (val, key) => {
@@ -415,7 +417,7 @@ const Problems = (props) => {
                                         value={item}
                                         onChange={(e) => {
                                             onChangeAnswer(e.target.value, key)
-                                            setCorrectAnswers([]);
+                                            setCorrectAnswer('');
                                         }}
                                         endAdornment={
                                             <InputAdornment position="end">
@@ -440,20 +442,17 @@ const Problems = (props) => {
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-5 col-sm-10 px-2'>
                         <FormControl fullWidth>
-                            <InputLabel id="demo-mutiple-checkbox-label">Correct Answers</InputLabel>
+                            <InputLabel id="demo-mutiple-checkbox-label">Correct Answer</InputLabel>
                             <Select
                                 labelId="demo-mutiple-checkbox-label"
                                 id="demo-mutiple-checkbox"
-                                multiple
-                                value={correctAnswers}
-                                onChange={onChangeCorrectAnswers}
+                                value={correctAnswer}
+                                onChange={onChangeCorrectAnswer}
                                 input={<Input />}
-                                renderValue={(selected) => selected.join(', ')}
                                 MenuProps={MenuProps}
                             >
                                 {answers.map((name, key) => (
                                     <MenuItem key={key} value={name}>
-                                        <Checkbox checked={correctAnswers.indexOf(name) > -1} />
                                         <ListItemText primary={name} />
                                     </MenuItem>
                                 ))}
@@ -537,7 +536,7 @@ const Problems = (props) => {
                                         <TableCell
                                             key={key}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth, width: column.width}}
+                                            style={{ minWidth: column.minWidth, width: column.width, textAlign: column.textAlign}}
                                             className={column.id == 'action' ? 'text-right' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
@@ -575,7 +574,7 @@ const Problems = (props) => {
                                                                     <BtnCompetitionName name={value} selected={true}/>
                                                                 </TableCell>
                                                             )
-                                                        } if (column.id == 'answers' || column.id == 'correctAnswers') {
+                                                        } if (column.id == 'answers') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`}>
                                                                     {value.join(', ')}
@@ -590,7 +589,8 @@ const Problems = (props) => {
                                                         }
                                                         else if (column.id == 'action') {
                                                             return (
-                                                                <TableCell key={`body_${subKey}`} className='text-right'>
+                                                                <TableCell key={`body_${subKey}`}
+                                                                           className='text-right'>
                                                                     <IconButton color='primary'
                                                                                 size='small'
                                                                                 onClick={() => onEditProblem(row)}>
@@ -600,12 +600,18 @@ const Problems = (props) => {
                                                                     <IconButton color='secondary'
                                                                                 size='small'
                                                                                 onClick={() => {
-                                                                        setSelectedId(row.id);
-                                                                        setOpenDeleteDialog(true);
+                                                                                    setSelectedId(row.id);
+                                                                                    setOpenDeleteDialog(true);
 
-                                                                    }}>
+                                                                                }}>
                                                                         <DeleteIcon/>
                                                                     </IconButton>
+                                                                </TableCell>
+                                                            )
+                                                        } else if (column.id == 'correctAnswer') {
+                                                            return (
+                                                                <TableCell key={`body_${subKey}`} align={column.align} style={{textAlign: 'center'}}>
+                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
                                                                 </TableCell>
                                                             )
                                                         } else {
