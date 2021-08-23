@@ -125,7 +125,6 @@ const Competition = (props) => {
                 })
                 .catch(error => {
                     toast.error(error.message);
-                    setCurrentCompetition({});
                 });
         }
     };
