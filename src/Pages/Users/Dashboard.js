@@ -27,7 +27,6 @@ import {
 import {ExitToApp} from "@material-ui/icons";
 import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions/DialogActions";
 import Dialog from "@material-ui/core/Dialog/Dialog";
 import Paper from "@material-ui/core/Paper";
@@ -160,7 +159,8 @@ const Dashboard = (props) => {
         props.history.push({
             pathname: '/user/competition',
             state: {
-                competitionId: selectedCompId
+                competitionId: selectedCompId,
+                user: props
             }
         });
     };

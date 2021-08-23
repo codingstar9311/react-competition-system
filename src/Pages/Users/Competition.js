@@ -10,10 +10,8 @@ import BtnAnswerNumber from "../../Components/User/BtnAnswerNumber";
 import BtnConfirm from "../../Components/User/BtnConfirm";
 import {firestore} from "../../firebase";
 import {toast, ToastContainer} from "react-toastify";
-import LoadingOverlay from 'react-loading-overlay';
 import CircularProgress from "@material-ui/core/CircularProgress";
 
-const questionNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -53,68 +51,103 @@ const useStyles = makeStyles((theme) => ({
 const Competition = (props) => {
     const classes = useStyles();
 
-    const [initLoading, setInitLoading] = useState(false);
-
     const [curProblemIndex, setCurProblemIndex] = useState(0);
-    const [problems, setProblems] = useState([]);
-    const [limitTime, setLimitTime] = useState('');
+    const [timeLeft, setTimeLeft] = useState('');
+
+    const [currentCompetition, setCurrentCompetition] = useState(null);
 
     let competitionId = '';
-
+    let timeInterval = null;
     const location = useLocation();
 
     const loadInitProblems = () => {
         if (competitionId != '') {
-            setInitLoading(true);
-            // get problems form selected competition
-            firestore.collection('competitions')
-                .doc(competitionId)
-                .get()
-                .then(async competitionRef => {
+            // get current competition
+            let user_id = props.user.id;
+            let competition_path = `users/${user_id}/competitions`;
+
+            firestore.collection(competition_path).doc(competition_path).get()
+                .then(competitionRef => {
                     if (competitionRef.exists) {
-                        let tempProblems = [];
+                        let competitionData = competitionRef.data();
+                        setCurrentCompetition({...competitionData});
+                    } else {
+                        // get problems form selected competition
+                        firestore.collection('competitions')
+                            .doc(competitionId)
+                            .get()
+                            .then(async competitionRef => {
+                                if (competitionRef.exists) {
+                                    let tempProblems = [];
 
-                        let data = competitionRef.data();
-                        let selectedProblems = data.selectedProblems ? data.selectedProblems : [];
+                                    let competitionData = competitionRef.data();
+                                    let selectedProblems = competitionData.selectedProblems ? competitionData.selectedProblems : [];
 
-                        for (let i = 0; i < selectedProblems.length; i++) {
-                            let selectedProblemItem = selectedProblems[i];
-                            let problemId = selectedProblemItem.id;
-                            let problemRef = await firestore.collection('problems').doc(problemId).get();
+                                    for (let i = 0; i < selectedProblems.length; i++) {
+                                        let selectedProblemItem = selectedProblems[i];
+                                        let problemId = selectedProblemItem.id;
+                                        let problemRef = await firestore.collection('problems').doc(problemId).get();
 
-                            if (problemRef.exists) {
-                                let dataProblem = problemRef.data();
-                                tempProblems.push({
-                                    id: problemRef.id,
-                                    question: dataProblem.question,
-                                    answers: dataProblem.answers ? dataProblem.answers : []
-                                });
-                            }
-                        }
+                                        if (problemRef.exists) {
+                                            let dataProblem = problemRef.data();
+                                            tempProblems.push({
+                                                id: problemRef.id,
+                                                question: dataProblem.question,
+                                                answers: dataProblem.answers ? dataProblem.answers : []
+                                            });
+                                        }
+                                    }
 
-                        setProblems([...tempProblems]);
+                                    let currentTime = new Date();
+
+                                    let setInfo = {
+                                        competitionId,
+                                        grade: competitionData.grade,
+                                        competitionName: competitionData.competitionName,
+                                        problems: tempProblems,
+                                        limitTime: competitionData.limitTime,
+                                        limitWarningCount: competitionData.limitWarningCount,
+                                        endTime: new Date(currentTime.getTime() + competitionData.limitTime * 60000)
+                                    };
+                                    await firestore.collection(competition_path)
+                                        .doc(competitionId)
+                                        .set(setInfo);
+
+                                    setCurrentCompetition({
+                                        ...setInfo
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                toast.error(error.message)
+                            });
                     }
                 })
                 .catch(error => {
-                    toast.error(error.message)
-                })
-                .finally(() => {
-                    setInitLoading(false);
-                //    start left time
+                    toast.error(error.message);
+                    setCurrentCompetition({});
                 });
         }
     };
 
     useEffect(() => {
         // get selected competition index
-        competitionId = location.state.competitionId;
-        loadInitProblems();
+        if (props.user) {
+            competitionId = location.state.competitionId;
+            loadInitProblems();
+        }
 
-    }, [location]);
+    }, [props.user]);
+
+    const onStartTimer = () => {
+        timeInterval = setInterval(() => {
+
+        }, 1000);
+    };
 
     const onNext = () => {
         let nextIndex = curProblemIndex + 1;
-        if (nextIndex > problems.length - 1) {
+        if ( nextIndex > currentCompetition.problems.length - 1) {
             return;
         }
 
@@ -132,9 +165,10 @@ const Competition = (props) => {
     const onSelectAnswer = (selectedProblem, answer) => {
         selectedProblem.selectedAnswer = answer;
 
-        setProblems([
-            ...problems
-        ]);
+        setCurrentCompetition({
+            ...currentCompetition,
+            problems: currentCompetition.problems
+        });
     };
 
     const getNumberStatus = (selectedProblem, key) => {
@@ -154,17 +188,17 @@ const Competition = (props) => {
             <h3>Question {index + 1}</h3>
             <div className='row'>
                 <pre className='col-12' style={{height: '300px', overflow: 'auto'}}>
-                    {problems[index] ? problems[index].question : ''}
+                    {currentCompetition.problems[index] ? currentCompetition.problems[index].question : ''}
                 </pre>
             </div>
             <div className='row py-2'>
                 <div className='col-12'>
                     <div className={classes.AnswerContainer}>
                     {
-                        problems[index] && problems[index].answers.map((answer, key) => {
+                        currentCompetition.problems[index] && currentCompetition.problems[index].answers.map((answer, key) => {
                             return (
                                 <div style={{padding: '10px'}} key={key}>
-                                    <BtnAnswerNumber selected={answer == problems[index].selectedAnswer ? true : false} onClick={() => onSelectAnswer(problems[index], answer)} title={answer}/>
+                                    <BtnAnswerNumber selected={answer == currentCompetition.problems[index].selectedAnswer ? true : false} onClick={() => onSelectAnswer(currentCompetition.problems[index], answer)} title={answer}/>
                                 </div>
                             )
                         })
@@ -175,12 +209,10 @@ const Competition = (props) => {
         </>
     );
 
-
-
     return (
         <>
             {
-                initLoading ? <div className='text-center' style={{paddingTop: '200px'}}>
+                currentCompetition == null ? <div className='text-center' style={{paddingTop: '200px'}}>
                         <CircularProgress/>
                     </div>
                 :
@@ -195,7 +227,7 @@ const Competition = (props) => {
                         <div className='col-lg-8 col-sm-12 text-center'>
                             <div className={classes.headerNumberContainer}>
                                 {
-                                    problems.map((problemItem, key) => {
+                                    currentCompetition.problems && currentCompetition.problems.map((problemItem, key) => {
                                         return (
                                             <div style={{padding: '6px'}} key={key}>
                                                 <BtnCompetitionNumberSelect
@@ -210,21 +242,21 @@ const Competition = (props) => {
                         </div>
                         <div className='col-lg-2 col-sm-12 text-center'>
                             <h4 style={{color: '#6f6f6f'}}>Time Left</h4>
-                            <h3>12:48</h3>
+                            <h3>{timeLeft}</h3>
                         </div>
                     </div>
                     <div className='row py-2'>
-                        <div className={initLoading ? 'col-12 component-loading' : 'col-12'}>
+                        <div className={currentCompetition == null ? 'col-12 component-loading' : 'col-12'}>
                             <ViewSlider
                                 renderView={renderView}
-                                numViews={problems.length}
+                                numViews={currentCompetition.problems.length}
                                 activeView={curProblemIndex}
                                 animateHeight
                             />
                         </div>
                     </div>
                     {
-                        initLoading == false ?
+                        currentCompetition != null ?
                             <div className='row' style={{paddingTop: '40px'}}>
                                 <div className='col-lg-3 col-sm-12'>
                                 </div>
@@ -236,7 +268,7 @@ const Competition = (props) => {
                                         </div>
                                         <div className='col-6'>
                                             <BtnConfirm style={{float: 'right'}}
-                                                        disabled={curProblemIndex == problems.length - 1 ? true : false}
+                                                        disabled={currentCompetition.problems && curProblemIndex == currentCompetition.problems.length - 1 ? true : false}
                                                         onClick={onNext} title='Next'/>
                                         </div>
                                     </div>
