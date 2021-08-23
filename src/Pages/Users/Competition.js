@@ -4,13 +4,19 @@ import 'react-pro-sidebar/dist/css/styles.css';
 import {makeStyles} from "@material-ui/core";
 import ViewSlider from 'react-view-slider';
 
-import {COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
+import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
 import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 import BtnAnswerNumber from "../../Components/User/BtnAnswerNumber";
 import BtnConfirm from "../../Components/User/BtnConfirm";
 import {firestore} from "../../firebase";
 import {toast, ToastContainer} from "react-toastify";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogActions from "@material-ui/core/DialogActions/DialogActions";
+import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
+import Dialog from "@material-ui/core/Dialog/Dialog";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -25,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: '50px',
         borderColor: COLOR_DLG_BORDER_BLUE,
         paddingBottom: '40px',
+        paddingTop: '40px',
         marginBottom: '14%'
     },
     headerNumberContainer: {
@@ -54,8 +61,9 @@ const Competition = (props) => {
     const [curProblemIndex, setCurProblemIndex] = useState(0);
     const [timeLeft, setTimeLeft] = useState(null);
 
-    const [initLoading, setInitLoading] = useState(false);
     const [currentCompetition, setCurrentCompetition] = useState(null);
+    const [warnCount, setWarnCount] = useState(11);
+    const [openWarningDlg, setOpenWarningDlg] = useState(false);
 
     let timeInterval = null;
     const location = useLocation();
@@ -108,6 +116,7 @@ const Competition = (props) => {
                                         grade: competitionData.grade,
                                         competitionName: competitionData.competitionName,
                                         problems: tempProblems,
+                                        warningCount: 0,
                                         limitTime: competitionData.limitTime,
                                         limitWarningCount: competitionData.limitWarningCount,
                                         startedAt: new Date(),
@@ -137,6 +146,19 @@ const Competition = (props) => {
         }
     };
 
+    const onBlur = () => {
+        setOpenWarningDlg(true);
+    };
+
+    useEffect(() => {
+        if (currentCompetition && currentCompetition.warningCount >= currentCompetition.limitWarningCount) {
+            onEndTime();
+            window.removeEventListener('blur', onBlur);
+            setTimeLeft(0);
+            props.history.push('/user/submitted');
+        }
+    }, [currentCompetition]);
+
     useEffect(() => {
         // get selected competition index
         if (props.user) {
@@ -154,6 +176,7 @@ const Competition = (props) => {
     useEffect(() => {
         if (timeLeft != null && timeLeft < 0) {
             onEndTime();
+            window.removeEventListener('blur', onBlur);
             setTimeLeft(0);
             props.history.push('/user/submitted');
         }
@@ -174,6 +197,9 @@ const Competition = (props) => {
             onEndTime();
             props.history.push('/user/submitted');
         } else {
+            console.log(currentCompetition);
+            window.addEventListener('blur', onBlur);
+
             timeInterval = setInterval(() => {
                 curTime = new Date();
                 if (bExist == true) {
@@ -260,6 +286,58 @@ const Competition = (props) => {
         return 'none';
     };
 
+    const onChangeWarningCount = () => {
+        setOpenWarningDlg(true);
+
+        let curWarningCount = currentCompetition.warningCount + 1;
+        setOpenWarningDlg(false);
+
+        let user_id = props.user.id;
+
+        firestore.collection(`users/${user_id}/competitions`)
+            .doc(competitionId)
+            .set({
+                warningCount: curWarningCount
+            }, {merge: true})
+            .then(() => {
+                setCurrentCompetition({
+                    ...currentCompetition,
+                    warningCount: curWarningCount
+                });
+            })
+            .catch((error) => {
+                toast.error(error.message);
+            });
+    };
+
+    const warningDlg = (
+        <Dialog
+            fullWidth={true}
+            maxWidth={"sm"}
+            open={openWarningDlg}
+            classes={{
+                paper: classes.dlgBlueBorder
+            }}
+            onClose={(event, reason) => {
+                if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                    return;
+                }
+            }}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <h2 className='text-center' style={{color: COLOR_DLG_TITLE, fontSize: '1.8em', fontWeight: 'bolder'}}>Warning</h2>
+            <DialogContent style={{paddingTop: '30px'}}>
+                <h4 style={{fontWeight: 'bold'}} className='text-center'>
+                    Please stay on the competition site. You have left this site <span style={{color: COLOR_DLG_BORDER_BLUE}}>{currentCompetition ? (`${currentCompetition.limitWarningCount - currentCompetition.warningCount - 1} times`)  : null}</span>
+                </h4>
+            </DialogContent>
+            <DialogActions className='justify-content-center py-3'>
+                <BtnDialogConfirm title='Continue' onClick={() => onChangeWarningCount()} backgroundColor={props.disabled ? '#ddd' : COLOR_DLG_BORDER_BLUE}/>
+            </DialogActions>
+        </Dialog>
+    );
+
     const renderView = ({index}) => (
         <>
             <h3>Question {index + 1}</h3>
@@ -298,6 +376,9 @@ const Competition = (props) => {
                         position='top-center'
                         autoClose={2000}
                         traggle/>
+                    {
+                        warningDlg
+                    }
                     <div className={'row py-2'}>
                         <div className='col-lg-2 col-sm-12'>
                         </div>
