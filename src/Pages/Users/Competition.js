@@ -1,16 +1,17 @@
-import React, {useContext, useEffect, useState} from "react";
-import {auth} from "../../firebase";
-import {ProSidebar, MenuItem, Menu, SubMenu, FaHear} from "react-pro-sidebar";
+import React, {useEffect, useState} from "react";
+import {useLocation} from 'react-router-dom';
 import 'react-pro-sidebar/dist/css/styles.css';
 import {makeStyles} from "@material-ui/core";
 import ViewSlider from 'react-view-slider';
 
-import {COLOR_DLG_BORDER_BLACK, COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
+import {COLOR_DLG_BORDER_BLUE} from "../../Utils/ColorConstants";
 import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 import BtnAnswerNumber from "../../Components/User/BtnAnswerNumber";
 import BtnConfirm from "../../Components/User/BtnConfirm";
+import {firestore} from "../../firebase";
+import {toast} from "react-toastify";
 
-const guestionNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+const questionNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -45,22 +46,54 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const renderView = ({index, active, transitionState}) => (
-    <div>
-        <h3>View {index}</h3>
-        <p>I am {active ? 'active' : 'inactive'}</p>
-        <p>transitionState: {transitionState}</p>
-    </div>
-);
+
 
 const Competition = (props) => {
     const classes = useStyles();
     const [curProblemIndex, setCurProblemIndex] = useState(0);
     const [problems, setProblems] = useState([]);
 
+    let competitionId = '';
+
+    const location = useLocation();
+
     useEffect(() => {
         // get selected competition index
-    }, []);
+        competitionId = location.state.competitionId;
+
+        if (competitionId != '') {
+            // get problems form selected competition
+            firestore.collection('competitions')
+                .doc(competitionId)
+                .get()
+                .then(competitionRef => {
+                    if (competitionRef.exists) {
+                        let data = competitionRef.data();
+                        let selectedProblems = data.selectedProblems ? data.selectedProblems : [];
+
+                        let tempProblems = [];
+                        selectedProblems.forEach(async item => {
+                            let problemId = item.id;
+
+                            let problemRef = await firestore.collection('problems').doc(problemId).get();
+
+                            if (problemRef.exists) {
+                                let dataProblem = problemRef.data();
+                                setProblems([...problems, {
+                                    id: problemRef.id,
+                                    question: dataProblem.question,
+                                    answers: dataProblem.answers ? dataProblem.answers : []
+                                }])
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    toast.error(error.message)
+                });
+        }
+
+    }, [location]);
 
     const onNext = () => {
         let nextIndex = curProblemIndex + 1;
@@ -75,6 +108,17 @@ const Competition = (props) => {
         setCurProblemIndex(prevIndex);
     };
 
+    const renderView = ({index}) => (
+        <>
+            <h3>Question {index + 1}</h3>
+            <div className='row'>
+                <div className='col-12'>
+                    {problems.question}
+                </div>
+            </div>
+        </>
+    );
+
     return (
         <div className={classes.root}>
             <div className={'row py-2'}>
@@ -83,7 +127,7 @@ const Competition = (props) => {
                 <div className='col-lg-8 col-sm-12 text-center'>
                     <div className={classes.headerNumberContainer}>
                         {
-                            guestionNumbers.map((numberItem, key) => {
+                            questionNumber.map((numberItem, key) => {
                                 return (
                                     <div style={{padding: '6px'}} key={key}>
                                         <BtnCompetitionNumberSelect number={numberItem} status={'process'}/>

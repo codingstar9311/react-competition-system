@@ -216,7 +216,7 @@ const Problems = (props) => {
                         return item;
                     });
 
-                    setRows([...curRows])
+                    setRows([...curRows]);
                     onToggleDialog();
                 })
                 .catch(error => {

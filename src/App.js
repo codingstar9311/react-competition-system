@@ -6,13 +6,13 @@ import {
     Redirect,
 } from "react-router-dom";
 import Login from "./Pages/Auth/Login";
-import {createBrowserHistory} from "history";
+import {useHistory} from 'react-router-dom';
 import './App.css';
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import UserLayout from "./Pages/Users/UserLayout";
 
-const hist = createBrowserHistory();
 export default function App() {
+    const hist = useHistory();
 
     return (
         <Router history={hist}>

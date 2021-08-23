@@ -153,7 +153,16 @@ const Dashboard = (props) => {
 
     const onLogout = () => {
         localStorage.removeItem('user_info');
-        props.history.push('/login', {});
+        props.history.push('/login');
+    };
+
+    const onGotoCompetition = () => {
+        props.history.push({
+            pathname: '/user/competition',
+            state: {
+                competitionId: selectedCompId
+            }
+        });
     };
 
     const startConfirmDialog = (
@@ -186,9 +195,9 @@ const Dashboard = (props) => {
             </DialogContent>
             <DialogActions className='justify-content-center'>
                 <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.loading} backgroundColor={COLOR_CANCEL_BUTTON}/>
-                <BtnDialogConfirm disabled={selectedCompId == '' ? true : false} width='120px' onClick={() => {
-                    props.history.push('/user/competition');
-                }} variant='contained' title='Yes' disabled={props.loading}/>
+                <BtnDialogConfirm disabled={selectedCompId == '' ? true : false} width='120px'
+                                  onClick={() => onGotoCompetition()}
+                                  variant='contained' title='Yes' disabled={props.loading}/>
             </DialogActions>
         </Dialog>
     );
