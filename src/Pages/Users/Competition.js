@@ -46,17 +46,16 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-
+var competitionId = '';
 
 const Competition = (props) => {
     const classes = useStyles();
 
     const [curProblemIndex, setCurProblemIndex] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(null);
 
     const [currentCompetition, setCurrentCompetition] = useState(null);
 
-    let competitionId = '';
     let timeInterval = null;
     const location = useLocation();
 
@@ -107,8 +106,10 @@ const Competition = (props) => {
                                         grade: competitionData.grade,
                                         competitionName: competitionData.competitionName,
                                         problems: tempProblems,
+                                        correctAnswer: competitionData.correctAnswer,
                                         limitTime: competitionData.limitTime,
                                         limitWarningCount: competitionData.limitWarningCount,
+                                        startedAt: new Date(),
                                         endTime: new Date(currentTime.getTime() + competitionData.limitTime * 60000 + 2000)
                                     };
                                     await firestore.collection(competition_path)
@@ -139,7 +140,12 @@ const Competition = (props) => {
         // get selected competition index
         if (props.user) {
             competitionId = location.state.competitionId;
-            loadInitProblems();
+
+            if (competitionId != '') {
+                loadInitProblems();
+            } else {
+                props.history.push('/user/dashboard');
+            }
         }
 
     }, [props.user]);
@@ -148,25 +154,43 @@ const Competition = (props) => {
         if (timeLeft < 0) {
             onEndTime();
             setTimeLeft(0);
-            props.history.push('/user/dashboard');
+            props.history.push('/user/submitted');
         }
     }, [timeLeft]);
 
     const onStartTimer = (competitionData, bExist = true) => {
-        timeInterval = setInterval(() => {
-            let curTime = new Date();
-            let endTime = null;
-            if (bExist == true) {
-                endTime = new Date(competitionData.endTime.seconds * 1000);
-            } else {
-                endTime = competitionData.endTime;
-            }
-            let diff = endTime.getTime() - curTime.getTime();
-            setTimeLeft(Math.floor(diff / 1000));
-        }, 1000);
+
+        let curTime = new Date();
+        let endTime = null;
+        if (bExist == true) {
+            endTime = new Date(competitionData.endTime.seconds * 1000);
+        } else {
+            endTime = competitionData.endTime;
+        }
+        let diff = endTime.getTime() - curTime.getTime();
+
+        if (diff <= 0) {
+            onEndTime();
+            props.history.push('/user/submitted');
+        } else {
+            timeInterval = setInterval(() => {
+                curTime = new Date();
+                if (bExist == true) {
+                    endTime = new Date(competitionData.endTime.seconds * 1000);
+                } else {
+                    endTime = competitionData.endTime;
+                }
+                let diff = endTime.getTime() - curTime.getTime();
+                setTimeLeft(Math.floor(diff / 1000));
+            }, 1000);
+        }
     };
 
     const getTimeLeftFormat = (insTimeLeft) => {
+        if (insTimeLeft == null) {
+            return "00:00";
+        }
+
         let minute = Math.floor(insTimeLeft / 60);
         if (minute < 10) {
             minute = "0" + minute;
@@ -203,10 +227,24 @@ const Competition = (props) => {
     const onSelectAnswer = (selectedProblem, answer) => {
         selectedProblem.selectedAnswer = answer;
 
+        let user_id = props.user.id;
+
         setCurrentCompetition({
             ...currentCompetition,
             problems: currentCompetition.problems
         });
+
+        firestore.collection(`users/${user_id}/competitions`)
+            .doc(competitionId)
+            .set({
+                problems: currentCompetition.problems
+            }, {merge: true})
+            .then(() => {
+
+            })
+            .catch((error) => {
+                toast.error(error.message);
+            });
     };
 
     const getNumberStatus = (selectedProblem, key) => {

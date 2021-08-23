@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
 import Competition from "./Competition";
+import Submitted from "./Submitted";
 
 const UserLayout = (props) => {
 
@@ -31,6 +32,7 @@ const UserLayout = (props) => {
             <Switch>
                 <Route path={'/user/dashboard'} render={(props) => <Dashboard {...props} user={user}/>}/>
                 <Route path={'/user/competition'} render={(props) => <Competition {...props} user={user}/>}/>
+                <Route path={'/user/submitted'} render={(props) => <Submitted {...props} user={user}/>}/>
             </Switch>
         </div>
     )
