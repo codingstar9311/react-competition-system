@@ -62,8 +62,8 @@ const Competition = (props) => {
     const [timeLeft, setTimeLeft] = useState(null);
 
     const [currentCompetition, setCurrentCompetition] = useState(null);
-    const [warnCount, setWarnCount] = useState(11);
     const [openWarningDlg, setOpenWarningDlg] = useState(false);
+    const [openSubmitDlg, setOpenSubmitDlg] = useState(false);
 
     let timeInterval = null;
     const location = useLocation();
@@ -150,13 +150,15 @@ const Competition = (props) => {
         setOpenWarningDlg(true);
     };
 
+    const onGotoSubmittedPage = () => {
+        onEndTime();
+        window.removeEventListener('blur', onBlur);
+        setTimeLeft(0);
+        props.history.push('/user/submitted');
+    };
+
     useEffect(() => {
-        if (currentCompetition && currentCompetition.warningCount >= currentCompetition.limitWarningCount) {
-            onEndTime();
-            window.removeEventListener('blur', onBlur);
-            setTimeLeft(0);
-            props.history.push('/user/submitted');
-        }
+
     }, [currentCompetition]);
 
     useEffect(() => {
@@ -175,12 +177,14 @@ const Competition = (props) => {
 
     useEffect(() => {
         if (timeLeft != null && timeLeft < 0) {
-            onEndTime();
-            window.removeEventListener('blur', onBlur);
-            setTimeLeft(0);
-            props.history.push('/user/submitted');
+            onGotoSubmittedPage();
         }
-    }, [timeLeft]);
+
+        if (currentCompetition && (currentCompetition.warningCount >= currentCompetition.limitWarningCount
+            || currentCompetition.submitted === true)) {
+            onGotoSubmittedPage();
+        }
+    }, [timeLeft, currentCompetition]);
 
     const onStartTimer = (competitionData, bExist = true) => {
 
@@ -287,7 +291,6 @@ const Competition = (props) => {
     };
 
     const onChangeWarningCount = () => {
-        setOpenWarningDlg(true);
 
         let curWarningCount = currentCompetition.warningCount + 1;
         setOpenWarningDlg(false);
@@ -309,6 +312,52 @@ const Competition = (props) => {
                 toast.error(error.message);
             });
     };
+
+    const onSubmitCompetition = () => {
+        setOpenSubmitDlg(false);
+
+        let user_id = props.user.id;
+
+        firestore.collection(`users/${user_id}/competitions`)
+            .doc(competitionId)
+            .set({
+                submitted: true
+            }, {merge: true})
+            .then(() => {
+                onGotoSubmittedPage();
+            })
+            .catch((error) => {
+                toast.error(error.message);
+            });
+    };
+
+    const submitDialog = (
+        <Dialog
+            fullWidth={true}
+            maxWidth={"sm"}
+            open={openSubmitDlg}
+            classes={{
+                paper: classes.dlgBlueBorder
+            }}
+            onClose={(event, reason) => {
+                if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                    return;
+                }
+            }}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogContent style={{paddingTop: '30px'}}>
+                <h4 style={{fontWeight: 'bold'}} className='text-center'>
+                    Do you wish to submit the competition early?
+                </h4>
+            </DialogContent>
+            <DialogActions className='justify-content-around py-3 px-3'>
+                <BtnDialogConfirm title='Continue' width='120px' onClick={() => onSubmitCompetition()} backgroundColor={props.disabled ? '#ddd' : COLOR_DLG_BORDER_BLUE}/>
+                <BtnDialogConfirm title='Cancel' width='120px' onClick={() => setOpenSubmitDlg(false)}/>
+            </DialogActions>
+        </Dialog>
+    );
 
     const warningDlg = (
         <Dialog
@@ -379,6 +428,9 @@ const Competition = (props) => {
                     {
                         warningDlg
                     }
+                    {
+                        submitDialog
+                    }
                     <div className={'row py-2'}>
                         <div className='col-lg-2 col-sm-12'>
                         </div>
@@ -432,7 +484,7 @@ const Competition = (props) => {
                                     </div>
                                 </div>
                                 <div className='col-lg-3 col-sm-12'>
-                                    <BtnConfirm title='Submit Test' style={{float: 'right'}}/>
+                                    <BtnConfirm title='Submit Test' onClick={() => setOpenSubmitDlg(true)} style={{float: 'right'}}/>
                                 </div>
                             </div>
                             :
