@@ -147,7 +147,7 @@ const Competition = (props) => {
     };
 
     const onBlur = () => {
-        setOpenWarningDlg(true);
+        // setOpenWarningDlg(true);
     };
 
     const onGotoSubmittedPage = () => {
@@ -256,7 +256,12 @@ const Competition = (props) => {
     };
 
     const onSelectAnswer = (selectedProblem, answer) => {
-        selectedProblem.selectedAnswer = answer;
+
+        if (selectedProblem.selectedAnswer == answer) {
+            delete selectedProblem.selectedAnswer;
+        } else {
+            selectedProblem.selectedAnswer = answer;
+        }
 
         let user_id = props.user.id;
 
@@ -293,9 +298,9 @@ const Competition = (props) => {
     const onChangeWarningCount = () => {
 
         let curWarningCount = currentCompetition.warningCount + 1;
-        setOpenWarningDlg(false);
 
         let user_id = props.user.id;
+        setOpenWarningDlg(false);
 
         firestore.collection(`users/${user_id}/competitions`)
             .doc(competitionId)
