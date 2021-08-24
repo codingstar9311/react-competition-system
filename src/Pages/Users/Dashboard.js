@@ -42,6 +42,7 @@ const useStyles = makeStyles((theme) => ({
         border: 'solid 2px',
         borderRadius: '50px',
         borderColor: COLOR_DLG_BORDER_BLUE,
+        paddingTop: '40px',
         paddingBottom: '40px',
         marginBottom: '14%'
     },
@@ -51,7 +52,7 @@ const useStyles = makeStyles((theme) => ({
 const Dashboard = (props) => {
 
     const [scoredCompList, setScoredCompList] = useState([]);
-    const [waitingCompList, setWaitingList] = useState([]);
+    const [waitingCompList, setWaitingCompList] = useState([]);
     const [availableCompList, setAvailableCompList] = useState([]);
 
     const [showStartConfirmDlg, setShowStartConfirmDlg] = useState(false);
@@ -70,11 +71,10 @@ const Dashboard = (props) => {
         { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
-        { id: 'competitionTime', label: 'Competion Time', width: 100 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
-        { id: 'dateTime', label: 'Competition Time', minWidth: 170 },
-        { id: 'score', label: 'Score', minWidth: 170 },
-        { id: 'action', label: 'Action', width: 100}
+        { id: 'startedAt', label: 'Competition Time', minWidth: 170 },
+        { id: 'score', label: 'Score', width: 100},
+        { id: 'action', label: 'Action', width: 170}
     ];
 
     const [waitingSetting, setWaitingSetting] = useState({
@@ -89,10 +89,9 @@ const Dashboard = (props) => {
         { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
-        { id: 'competitionTime', label: 'Competion Time', width: 100 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
-        { id: 'dateTime', label: 'Competition Time', minWidth: 170 },
-        { id: 'score', label: 'Score', minWidth: 170 }
+        { id: 'startedAt', label: 'Competition Time', minWidth: 170 },
+        { id: 'score', label: 'Score', width: 200}
     ];
 
     const [availableSetting, setAvailableSetting] = useState({
@@ -113,35 +112,100 @@ const Dashboard = (props) => {
         { id: 'action', label: 'Action', width: 100}
     ];
 
+    const loadAvailableCompetitions = () => {
+        let grade = props.user.grade;
+        // get available list
+        firestore.collection('competitions').where('grade', '==', grade)
+            .get()
+            .then(competitionRef => {
+                let tempAvailableCompetitions = [];
+
+                let no = 1;
+                competitionRef.docs.forEach(item => {
+                    if (item.exists) {
+                        let data = item.data();
+                        let comp_id = item.id;
+                        // find in
+                        let user_id = props.user.id;
+                        let path = `users/${user_id}/competitions`;
+
+                        firestore.collection(path).where('competitionId', '==', comp_id)
+                            .get()
+                            .then(compRef => {
+                                if (compRef.docs.length < 0) {
+                                    if (data.status) {
+                                        tempAvailableCompetitions.push({
+                                            no,
+                                            id: item.id,
+                                            ...data
+                                        })
+                                    }
+                                    no ++;
+                                }
+                            });
+                    }
+                });
+
+                setAvailableCompList([...tempAvailableCompetitions]);
+            })
+            .catch(error => {
+                toast.error(error.message);
+            });
+    };
+
+    const loadOtherCompetitions = () => {
+        let grade = props.user.grade;
+        let user_id = props.user.id;
+
+        let path = `users/${user_id}/competitions`;
+
+        // get available list
+        firestore.collection(path).where('grade', '==', grade)
+            .get()
+            .then(competitionRef => {
+                let tempScoredCompetitions = [];
+                let tempWaitingCompetitions = [];
+
+                let noScored = 1;
+                let noWaiting = 1;
+                competitionRef.docs.forEach(item => {
+                    if (item.exists) {
+                        let data = item.data();
+                        if (data.score) {
+                            // put to score
+                            tempScoredCompetitions.push({
+                                no: noScored,
+                                id: item.id,
+                                ...data
+                            });
+                            noScored ++;
+
+                        } else {
+                            // put to waiting
+                            tempWaitingCompetitions.push({
+                                no: noWaiting,
+                                id: item.id,
+                                ...data
+                            });
+                            noWaiting ++;
+                        }
+                    }
+                });
+
+                setScoredCompList([...tempScoredCompetitions]);
+                console.log(tempScoredCompetitions);
+                setWaitingCompList([...tempWaitingCompetitions]);
+                console.log(tempWaitingCompetitions);
+            })
+            .catch(error => {
+                toast.error(error.message);
+            });
+    };
+
     useEffect(() => {
         if (props.user) {
-            let grade = props.user.grade;
-            // get available list
-            firestore.collection('competitions').where('grade', '==', grade)
-                .get()
-                .then(competitionRef => {
-                    let tempAvailableCompetitions = [];
-
-                    let no = 1;
-                    competitionRef.docs.forEach(item => {
-                        if (item.exists) {
-                            let data = item.data();
-                            if (data.status) {
-                                tempAvailableCompetitions.push({
-                                    no,
-                                    id: item.id,
-                                    ...data
-                                })
-                            }
-                            no ++;
-                        }
-                    });
-
-                    setAvailableCompList([...tempAvailableCompetitions]);
-                })
-                .catch(error => {
-                    toast.error(error.message);
-                });
+            loadOtherCompetitions();
+            loadAvailableCompetitions();
         }
     }, [props.user]);
 
@@ -254,8 +318,8 @@ const Dashboard = (props) => {
                                                 <TableCell
                                                     key={key}
                                                     align={column.align}
-                                                    style={{ maxWidth: column.maxWidth, width: column.width}}
-                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                    style={{ maxWidth: column.maxWidth, width: column.width, justifyContent: column.justifyContent}}
+                                                    className={column.id == 'action' || column.id == 'score' ? 'text-center' : ''}
                                                 >
                                                     <TableSortLabel active={scoredSetting.orderBy === column.id}
                                                                     direction={scoredSetting.orderBy == column.id ? scoredSetting.order : 'asc'}
@@ -295,25 +359,28 @@ const Dashboard = (props) => {
                                                                             <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
-                                                                } else if (column.id == 'selectedProblems') {
-                                                                    return (
-                                                                        <TableCell key={`body_${subKey}`}>
-                                                                            {value.map(item => (item.problemName)).join(', ')}
-                                                                        </TableCell>
-                                                                    )
-                                                                } else if (column.id == 'dateTime') {
+                                                                } else if (column.id == 'startedAt') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
                                                                             {new Date(value.seconds * 1000).toLocaleString()}
                                                                         </TableCell>
                                                                     )
+                                                                } else if (column.id == 'score') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} className='text-center'>
+                                                                            <BtnCompetitionName name={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                            <BtnDialogConfirm title='View List' onClick={() => {
+                                                                                alert('view detail List' + row.id)
+                                                                            }}/>
                                                                         </TableCell>
                                                                     )
-                                                                } else {
+                                                                }
+                                                                else {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align={column.align}>
                                                                             {column.format && typeof value === 'number' ? column.format(value) : value}
@@ -362,7 +429,7 @@ const Dashboard = (props) => {
                                                     key={key}
                                                     align={column.align}
                                                     style={{ maxWidth: column.maxWidth, width: column.width}}
-                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                    className={column.id == 'score' ? 'text-center' : ''}
                                                 >
                                                     <TableSortLabel active={waitingSetting.orderBy === column.id}
                                                                     direction={waitingSetting.orderBy == column.id ? waitingSetting.order : 'asc'}
@@ -402,25 +469,20 @@ const Dashboard = (props) => {
                                                                             <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
-                                                                } else if (column.id == 'selectedProblems') {
-                                                                    return (
-                                                                        <TableCell key={`body_${subKey}`}>
-                                                                            {value.map(item => (item.problemName)).join(', ')}
-                                                                        </TableCell>
-                                                                    )
-                                                                } else if (column.id == 'dateTime') {
+                                                                } else if (column.id == 'startedAt') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
                                                                             {new Date(value.seconds * 1000).toLocaleString()}
                                                                         </TableCell>
                                                                     )
-                                                                } else if (column.id == 'action') {
+                                                                } else if (column.id == 'score') {
                                                                     return (
-                                                                        <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                        <TableCell key={`body_${subKey}`} className='text-center'>
+                                                                            <BtnCompetitionName name='Awaiting Score' selected={true}/>
                                                                         </TableCell>
                                                                     )
-                                                                } else {
+                                                                }
+                                                                else {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align={column.align}>
                                                                             {column.format && typeof value === 'number' ? column.format(value) : value}
@@ -507,12 +569,6 @@ const Dashboard = (props) => {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
                                                                             <BtnCompetitionName name={value} selected={true}/>
-                                                                        </TableCell>
-                                                                    )
-                                                                } else if (column.id == 'selectedProblems') {
-                                                                    return (
-                                                                        <TableCell key={`body_${subKey}`}>
-                                                                            {value.map(item => (item.problemName)).join(', ')}
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'dateTime') {
