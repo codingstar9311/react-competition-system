@@ -97,12 +97,16 @@ const Users = (props) => {
 
     const classes = useStyles();
 
+    useEffect(() => {
+        onLoadUsers(searchText, filterGrades);
+    }, [filterGrades]);
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-    const onLoadUsers = (searchVal = '') => {
+    const onLoadUsers = (searchVal = '', insFilterGrades = []) => {
         firestore.collection('users').orderBy('dateTime', 'desc')
             .get()
             .then(usersRef => {
@@ -112,27 +116,56 @@ const Users = (props) => {
                     if (item.exists) {
                         let data = item.data();
                         let {fullName, email, grade} = data;
-                        grade = grade.toString();
-                        if (data.type === 'user') {
-                            if (searchVal != '') {
-                                if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
+
+                        // filter by grades
+                        if (filterGrades.length > 0) {
+                            if (filterGrades.includes(grade)) {
+                                grade = grade.toString();
+                                if (data.type === 'user') {
+                                    if (searchVal != '') {
+                                        if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
+                                            tempUsers.push({
+                                                no,
+                                                id: item.id,
+                                                ...data
+                                            });
+
+                                            no ++;
+                                        }
+                                    } else {
+                                        tempUsers.push({
+                                            no,
+                                            id: item.id,
+                                            ...data
+                                        });
+                                        no++;
+                                    }
+                                }
+                            }
+                        } else {
+                            grade = grade.toString();
+                            if (data.type === 'user') {
+                                if (searchVal != '') {
+                                    if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
+                                        tempUsers.push({
+                                            no,
+                                            id: item.id,
+                                            ...data
+                                        });
+
+                                        no ++;
+                                    }
+                                } else {
                                     tempUsers.push({
                                         no,
                                         id: item.id,
                                         ...data
                                     });
-
-                                    no ++;
+                                    no++;
                                 }
-                            } else {
-                                tempUsers.push({
-                                    no,
-                                    id: item.id,
-                                    ...data
-                                });
-                                no++;
                             }
                         }
+
                     }
                 });
 
@@ -147,7 +180,6 @@ const Users = (props) => {
 
     useEffect(() => {
         setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
-        onLoadUsers();
     }, []);
 
     const handleChangeRowsPerPage = (event) => {
@@ -271,12 +303,15 @@ const Users = (props) => {
     };
 
     const onChangeFilterGrades = (val) => {
-        let index = filterGrades.indexOf(val);
+        let resArr = filterGrades;
+        let index = resArr.indexOf(val);
+
         if (index > -1) {
             filterGrades.splice(index, 1);
-            setFilterGrades([...filterGrades])
+            setFilterGrades([...resArr])
         } else {
-            setFilterGrades([...filterGrades, val]);
+            resArr = [...filterGrades, val];
+            setFilterGrades([...resArr]);
         }
     };
 
