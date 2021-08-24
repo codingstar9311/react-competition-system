@@ -137,46 +137,24 @@ const Problems = (props) => {
                         let question = data.question ? data.question : '';
 
                         if (filterCompNames.length > 0) {
-                            if (filterCompNames.includes(competitionName)) {
-                                if (searchText !== '') {
-                                    if (problemName.includes(searchText) || competitionName.includes(searchText)
-                                        || question.includes(searchText)) {
-                                        tempProblems.push({
-                                            no,
-                                            id: item.id,
-                                            ...data
-                                        });
-                                        no ++;
-                                    }
-                                } else {
-                                    tempProblems.push({
-                                        no,
-                                        id: item.id,
-                                        ...data
-                                    });
-                                    no ++;
-                                }
-                            }
-                        } else {
-                            if (searchText !== '') {
-                                if (problemName.includes(searchText) || competitionName.includes(searchText)
-                                    || question.includes(searchText)) {
-                                    tempProblems.push({
-                                        no,
-                                        id: item.id,
-                                        ...data
-                                    });
-                                    no ++;
-                                }
-                            } else {
-                                tempProblems.push({
-                                    no,
-                                    id: item.id,
-                                    ...data
-                                });
-                                no ++;
+                            if (!filterCompNames.includes(competitionName)) {
+                                return;
                             }
                         }
+
+                        if (searchText !== '') {
+                            if (!problemName.includes(searchText) && !competitionName.includes(searchText)
+                                && !question.includes(searchText)) {
+                                return;
+                            }
+                        }
+
+                        tempProblems.push({
+                            no,
+                            id: item.id,
+                            ...data
+                        });
+                        no ++;
                     }
                 });
 
