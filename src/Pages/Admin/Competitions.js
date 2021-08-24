@@ -34,6 +34,8 @@ import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 const initLimitWarningCount = 15;
 const initLimitTime = 20;
 
+let selectedId = '';
+
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -54,13 +56,12 @@ const Competitions = (props) => {
 
     const columns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'grade', label: 'Grade', width: 80 },
+        { id: 'grades', label: 'Grades', textCenter: 'center'},
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
         { id: 'selectedProblems', label: 'Selected Problems', minWidth: 170 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 100 },
-        { id: 'startDate', label: 'Start Date', width: 140 },
-        { id: 'endDate', label: 'End Date', width: 140 },
+        { id: 'duration', label: 'Competition Duration', minWidth: 250 },
         { id: 'status', label: 'Status', width: 80 },
         { id: 'dateTime', label: 'Created At', minWidth: 170 },
         { id: 'action', label: 'Action', width: 140, textCenter: 'center' }
@@ -76,13 +77,13 @@ const Competitions = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
-    const [totalProblems, setTotalProblems] = useState([]);
+    const [problems, setProblems] = useState([]);
     const [selectedProblems, setSelectedProblems] = useState([]);
 
-    const [limitTime, setLimitTime] = useState(20);
-    const [limitWarningCount, setLimitWarningCount] = useState(15);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [limitTime, setLimitTime] = useState(initLimitTime);
+    const [limitWarningCount, setLimitWarningCount] = useState(initLimitWarningCount);
+    const [startDateTime, setStartDateTime] = useState('');
+    const [endDateTime, setEndDateTime] = useState('');
 
     const [rows, setRows] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
@@ -100,8 +101,7 @@ const Competitions = (props) => {
 
     const [searchText, setSearchText] = useState('');
     const [modalTitle, setModalTitle] = useState('Add Competition');
-    const [selectedId, setSelectedId] = useState('');
-    const [grade, setGrade] = useState(0);
+    const [grades, setGrades] = useState([]);
     const [competitionName, setCompetitionName] = useState('');
 
     const [loading, setLoading] = useState(false);
@@ -137,84 +137,34 @@ const Competitions = (props) => {
         }
     };
 
-    const onLoadCurrentInfo = (insGrad = '', insCompetitionName = '') => {
-        if (insGrad !== '' && insCompetitionName !== '') {
-            setLoading(true);
-            let docName = insGrad + "_" + insCompetitionName;
-            firestore.collection('competitions').doc(docName)
-                .get()
-                .then(compRef => {
-                    let selProblems = [];
-                    let tempLimitTime = initLimitTime;
-                    let tempLimitWarningCount = initLimitWarningCount;
-                    let tempStartDate = '';
-                    let tempEndDate = '';
-
-                    if (compRef.exists) {
-                        let data = compRef.data();
-                        if (data.selectedProblems) {
-                            let tlProblemsIds = totalProblems.map(item => {
-                                return item.id;
-                            });
-                            selProblems = data.selectedProblems.filter(item => {
-                                if (tlProblemsIds.includes(item.id)) {
-                                    return true;
-                                }
-                                return false;
-                            })
-                        }
-
-                        tempLimitTime = data.limitTime ? data.limitTime : 20;
-                        tempLimitWarningCount = data.limitWariningCount ? data.limitWariningCount : 20;
-                        tempStartDate = data.startDate ? data.startDate : '';
-                        tempEndDate = data.endDate ? data.endDate : '';
-
-                    }
-                    setSelectedProblems(selProblems);
-                    setLimitTime(tempLimitTime);
-                    setLimitWarningCount(tempLimitWarningCount);
-                    setStartDate(tempStartDate);
-                    setEndDate(tempEndDate);
-                })
-                .catch((error) => {
-                    toast.error(error.message);
-                })
-                .finally(() => {
-                    setLoading(false);
-                })
-        }
-    };
-
-
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-    const onLoadTotalProblems = (insCompetitoinName = '') => {
+    const onLoadProblems = (insCompetitionName = '') => {
         firestore.collection('problems')
             .orderBy('problemName', 'desc')
             .get()
             .then(problemRef => {
-                let tempTotalProblems = [];
+                let tempProblems = [];
                 problemRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
 
                         let tempCompName = data.competitionName ? data.competitionName : '';
-                        let tempGrade = data.grade ? data.grade : '';
 
-                        if (insCompetitoinName !== '' && insCompetitoinName !== tempCompName) {
+                        if (insCompetitionName !== '' && insCompetitionName !== tempCompName) {
                             return;
                         }
 
-                        tempTotalProblems.push({
+                        tempProblems.push({
                             id: item.id,
                             problemName: data.problemName
                         });
                     }
                 });
 
-                setTotalProblems(tempTotalProblems);
+                setProblems(tempProblems);
             })
             .catch(error => {
                 toast.error(error.message);
@@ -233,15 +183,22 @@ const Competitions = (props) => {
                     if (item.exists) {
                         let data = item.data();
 
-                        let tempGrade = data.grade ? data.grade.toString() : '';
+                        let tempGrades = data.grades ? data.grades : [];
                         let tempCompetition = data.competitionName ? data.competitionName : '';
-                        let tempStartDate = data.startDate ? data.startDate.toString() : '';
+                        let tempStartDate = data.startDateTime ? data.startDateTime.toString() : '';
                         let tempEndDate = data.endDate ? data.endDate.toString() : '';
                         let tempLimitTime = data.limitTime ? data.limitTime.toString() : '';
                         let tempLimitWarningCount = data.limitWarningCount ? data.limitWarningCount.toString() : '';
 
                         if (filterGrades.length > 0) {
-                            if (!filterGrades.includes(data.grade)) {
+                            let bFind = false;
+                            for (let i = 0; i < filterGrades.length; i++) {
+                                if (data.grades.includes(filterGrades[i])) {
+                                    bFind = true;
+                                    break;
+                                }
+                            }
+                            if (bFind == false) {
                                 return;
                             }
                         }
@@ -253,7 +210,7 @@ const Competitions = (props) => {
                         }
 
                         if (searchText !== '') {
-                            if (!tempGrade.includes(searchText) && !tempCompetition.includes(searchText)
+                            if (!tempGrades.includes(searchText) && !tempCompetition.includes(searchText)
                                 && !tempLimitTime.includes(searchText) && !tempLimitWarningCount.includes(searchText)
                                 && !tempStartDate.includes(searchText) && !tempEndDate.includes(searchText)) {
                                 return;
@@ -301,37 +258,61 @@ const Competitions = (props) => {
             return;
         }
 
+        if (endDateTime === '' || startDateTime === '') {
+            toast.warning('Please select duration.');
+            return;
+        }
+
+        if (endDateTime <= startDateTime) {
+            toast.warning('Please select correct durations. End date time should be bigger than start date time');
+            return;
+        }
+
         setLoading(true);
 
         let competitionInfo = {
-            grade,
+            grades,
             competitionName,
             selectedProblems,
             limitTime,
             limitWarningCount,
-            startDate,
-            endDate,
+            startDateTime: new Date(startDateTime),
+            endDateTime: new Date(endDateTime),
             dateTime: new Date()
         };
 
-        let path = `${grade + '_' + competitionName}`;
+        if (selectedId === '') { // add
+            competitionInfo.status = true;
+            firestore.collection('competitions').add(competitionInfo)
+                .then(() => {
+                    toast.success('Successfully Added!');
+                    onLoadCompetitions();
+                    onToggleDialog();
+                })
+                .catch(error => {
+                    toast.error(error.message);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
 
-        firestore.collection('competitions')
-            .doc(path)
-            .set({
-                ...competitionInfo
-            }, {merge: true})
-            .then(docRef => {
-                toast.success('Successfully Saved!');
-                onLoadCompetitions();
-                onToggleDialog();
-            })
-            .catch(error => {
-                toast.error(error.message);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        } else { // update
+            firestore.collection('competitions')
+                .doc(selectedId)
+                .set({
+                    ...competitionInfo
+                }, {merge: true})
+                .then(() => {
+                    onLoadCompetitions();
+                    onToggleDialog();
+                })
+                .catch(error => {
+                    toast.error(error.message);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        }
     };
 
     const onRestartCompetition = (competition_id) => {
@@ -361,32 +342,110 @@ const Competitions = (props) => {
             })
     };
 
-    const onEditCompetition = (row) => {
-        setSelectedId(row.id);
+    const onChangeGrades = (val) => {
+        let index = grades.indexOf(val);
 
-        setGrade(row.grade);
+        if (index > -1) {
+            grades.splice(index, 1);
+            setGrades([...grades])
+        } else {
+            setGrades([...grades, val]);
+        }
+    };
+
+    const getConvertDateTimeFormat = (dateTime) => {
+        let initDateTime = new Date(dateTime.seconds * 1000).toLocaleString();
+        let tempArr = initDateTime.split(",");
+
+        if (tempArr.length < 2) {
+            return '';
+        }
+        let datePart = tempArr[0].trim();
+        let timePart = tempArr[1].trim();
+
+        tempArr = datePart.split("/");
+        if (tempArr.length < 3) {
+            return '';
+        }
+
+        let month = parseInt(tempArr[0]);
+        if (month < 10) {
+            month = "0" + month;
+        }
+
+        let date = parseInt(tempArr[1]);
+        if (date < 10) {
+            date = "0" + date;
+        }
+
+        let year = parseInt(tempArr[2]);
+
+        let dateString = [year, month, date].join("-");
+
+        tempArr = timePart.split(" ");
+        if (tempArr.length < 2) {
+            return '';
+        }
+
+        let strTime = tempArr[0];
+        let ampm = tempArr[1];
+
+        tempArr = strTime.split(':');
+        if (tempArr.length < 3) {
+            return '';
+        }
+
+        let hour = parseInt(tempArr[0]);
+        if (ampm == 'PM') {
+            hour += 12;
+        }
+
+        if (hour < 10) {
+            hour = "0" + hour;
+        }
+
+        let minute = parseInt(tempArr[1]);
+        if (minute < 10) {
+            minute = "0" + minute;
+        }
+
+        let timeString = [hour, minute].join(":");
+
+        return [dateString, timeString].join("T");
+    };
+
+    const onEditCompetition = (row) => {
+        selectedId = row.id;
+
+        onLoadProblems(row.competitionName);
+        setGrades(row.grades);
         setCompetitionName(row.competitionName);
+
 
         setSelectedProblems(row.selectedProblems);
         setLimitTime(row.limitTime);
         setLimitWarningCount(row.limitWarningCount);
-        setStartDate(row.startDate);
-        setEndDate(row.endDate);
+
+        let tempStartDateTime = getConvertDateTimeFormat(row.startDateTime);
+        let tempEndDateTime = getConvertDateTimeFormat(row.endDateTime);
+
+        setStartDateTime(tempStartDateTime);
+        setEndDateTime(tempEndDateTime);
         setModalTitle('Set Competition');
 
         onToggleDialog();
     };
 
     const onAddCompetition = () => {
-        setSelectedId('');
+        selectedId = '';
 
-        setGrade('');
+        setGrades([]);
         setCompetitionName('');
         setSelectedProblems([]);
-        setLimitTime(20);
-        setLimitWarningCount(20);
-        setStartDate('');
-        setEndDate('');
+        setLimitTime(initLimitTime);
+        setLimitWarningCount(initLimitWarningCount);
+        setStartDateTime('');
+        setEndDateTime('');
 
         setModalTitle('Set Competition');
         onToggleDialog();
@@ -479,7 +538,7 @@ const Competitions = (props) => {
                     <div className='col-lg-10 col-sm-10 px-2'>
                         <div className='row align-items-center'>
                             <div className='col-lg-4 col-sm-12 text-left'>
-                                Select Grade
+                                Select Grades
                             </div>
                             <div className='col-lg-8 col-sm-12 justify-content-around' style={{display: "flex"}}>
                                 {
@@ -487,9 +546,8 @@ const Competitions = (props) => {
                                         return (
                                             <div className='px-2' key={key} >
                                                 <BtnGrade number={val} onClick={() => {
-                                                    setGrade(val);
-                                                    onLoadCurrentInfo(val, competitionName);
-                                                }} selected={val == grade ? true : false}/>
+                                                    onChangeGrades(val);
+                                                }} selected={grades.includes(val)}/>
                                             </div>
                                         )
                                     })
@@ -512,8 +570,9 @@ const Competitions = (props) => {
                                             <div className='px-2' key={key}>
                                                 <BtnCompetitionName name={val} onClick={() => {
                                                     setCompetitionName(val);
-                                                    onLoadCurrentInfo(grade, val);
-                                                }} selected={val === competitionName ? true : false}/>
+                                                    onLoadProblems(val);
+                                                    setSelectedProblems([]);
+                                                }} selected={val === competitionName}/>
                                             </div>
                                         )
                                     })
@@ -523,14 +582,14 @@ const Competitions = (props) => {
                     </div>
                 </div>
                 {
-                    grade && competitionName ?
+                    grades && competitionName ?
                         <div className='row py-2 align-items-center justify-content-center'>
                             <div className='col-lg-10 col-sm-10 px-2'>
                                 <label>Selected Problems({selectedProblems.length})</label>
                             </div>
                             <div className='col-lg-10 col-sm-10 px-2 problems-select-multi'>
                                 <Multiselect
-                                    options={totalProblems}
+                                    options={problems}
                                     selectedValues={selectedProblems}
                                     onSelect={onSelectProblems}
                                     onRemove={onRemoveProblems}
@@ -545,7 +604,7 @@ const Competitions = (props) => {
                         </div> : null
                 }
                 {
-                    grade && competitionName ?
+                    grades && competitionName ?
                         <div className='row py-2 align-items-center justify-content-center'>
                             <div className='col-lg-5 col-sm-10 px-2'>
                                 <TextField
@@ -572,15 +631,15 @@ const Competitions = (props) => {
                         </div> : null
                 }
                 {
-                    grade && competitionName ?
+                    grades && competitionName ?
                         <div className='row py-2 align-items-center justify-content-center'>
                             <div className='col-lg-5 col-sm-10 px-2'>
                                 <TextField
                                     autoFocus
-                                    label="Start Date"
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
+                                    label="Start Date-Time"
+                                    type='datetime-local'
+                                    value={startDateTime}
+                                    onChange={(e) => setStartDateTime(e.target.value)}
                                     fullWidth
                                     InputLabelProps={{
                                         shrink: true
@@ -590,10 +649,10 @@ const Competitions = (props) => {
                             <div className='col-lg-5 col-sm-10 px-2'>
                                 <TextField
                                     autoFocus
-                                    label="End Date"
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
+                                    label="End Date-Time"
+                                    type="datetime-local"
+                                    value={endDateTime}
+                                    onChange={(e) => setEndDateTime(e.target.value)}
                                     fullWidth
                                     InputLabelProps={{
                                         shrink: true
@@ -714,7 +773,7 @@ const Competitions = (props) => {
                                             key={key}
                                             align={column.align}
                                             style={{ maxWidth: column.maxWidth, width: column.width}}
-                                            className={column.id == 'action' ? 'text-center' : ''}
+                                            className={column.id === 'action' || column.id === 'grades' ? 'text-center' : ''}
                                         >
                                             <TableSortLabel active={orderBy === column.id}
                                                             direction={orderBy == column.id ? order : 'asc'}
@@ -739,10 +798,20 @@ const Competitions = (props) => {
                                                 <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                                     {columns.map((column, subKey) => {
                                                         const value = row[column.id];
-                                                        if (column.id == 'grade') {
+                                                        if (column.id == 'grades') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <BtnGrade number={value} selected={true}/>
+                                                                    <div style={{display: 'inline-flex', justifyContent: 'center'}} >
+                                                                        {
+                                                                            value.map((gradeVal, gradekey) => {
+                                                                                return (
+                                                                                    <div key={gradekey} style={{padding: '4px'}}>
+                                                                                        <BtnGrade number={gradeVal} selected={true}/>
+                                                                                    </div>
+                                                                                )
+                                                                            })
+                                                                        }
+                                                                    </div>
                                                                 </TableCell>
                                                             )
                                                         } if (column.id == 'competitionName') {
@@ -763,8 +832,13 @@ const Competitions = (props) => {
                                                                     {new Date(value.seconds * 1000).toLocaleString()}
                                                                 </TableCell>
                                                             )
-                                                        }
-                                                        else if (column.id == 'status') {
+                                                        } if (column.id == 'duration') {
+                                                            return (
+                                                                <TableCell key={`body_${subKey}`}>
+                                                                    {new Date(row.startDateTime.seconds * 1000).toLocaleString() + ' ~ ' + new Date(row.endDateTime.seconds * 1000).toLocaleString()}
+                                                                </TableCell>
+                                                            )
+                                                        } else if (column.id == 'status') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`}>
                                                                     <FormControlLabel
@@ -787,7 +861,7 @@ const Competitions = (props) => {
                                                                                 size='small'
                                                                                 title="Restart this competition"
                                                                                 onClick={() => {
-                                                                                    setSelectedId(row.id);
+                                                                                    selectedId = row.id;
                                                                                     setOpenRestartDialog(true);
                                                                                 }}>
                                                                         <ReplayIcon/>
@@ -804,7 +878,7 @@ const Competitions = (props) => {
                                                                                 size='small'
                                                                                 title="Delete Competition"
                                                                                 onClick={() => {
-                                                                                    setSelectedId(row.id);
+                                                                                    selectedId = row.id;
                                                                                     setOpenDeleteDialog(true);
 
                                                                                 }}>

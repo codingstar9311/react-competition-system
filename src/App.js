@@ -10,7 +10,7 @@ import {useHistory} from 'react-router-dom';
 import './App.css';
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import UserLayout from "./Pages/Users/UserLayout";
-
+import LocalizationProvider from '@material-ui/lab/LocalizationProvider';
 export default function App() {
     const hist = useHistory();
 
@@ -25,5 +25,6 @@ export default function App() {
                 </Switch>
             </div>
         </Router>
+
     );
 }

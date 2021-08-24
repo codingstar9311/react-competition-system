@@ -186,10 +186,16 @@ const Problems = (props) => {
     const onSaveProblem = async (event) => {
         event.preventDefault();
 
+        if (competitionName == '') {
+            toast.warning('Please select Competition Name!');
+            return;
+        }
+
         if (correctAnswer == undefined || correctAnswer == '') {
             toast.warning('Please select correct answer!');
             return;
         }
+
 
         setLoading(true);
 
