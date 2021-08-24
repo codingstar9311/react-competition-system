@@ -31,6 +31,8 @@ import DialogActions from "@material-ui/core/DialogActions/DialogActions";
 import Dialog from "@material-ui/core/Dialog/Dialog";
 import Paper from "@material-ui/core/Paper";
 
+let selectedId = '';
+
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -56,7 +58,6 @@ const Dashboard = (props) => {
     const [availableCompList, setAvailableCompList] = useState([]);
 
     const [showStartConfirmDlg, setShowStartConfirmDlg] = useState(false);
-    const [selectedCompId, setSelectedCompId] = useState('');
     const [scoredSetting, setScoredSetting] = useState({
         page: 0,
         rowsPerPage: 10,
@@ -68,9 +69,9 @@ const Dashboard = (props) => {
 
     const scoredCompColumns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
+        { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
         { id: 'startedAt', label: 'Competition Time', minWidth: 170 },
         { id: 'score', label: 'Score', width: 100},
@@ -86,9 +87,9 @@ const Dashboard = (props) => {
 
     const waitingCompColumns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
+        { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
         { id: 'startedAt', label: 'Competition Time', minWidth: 170 },
         { id: 'score', label: 'Score', width: 200}
@@ -103,19 +104,19 @@ const Dashboard = (props) => {
 
     const availableCompColumns = [
         { id: 'no', label: 'No', width: 60 },
-        { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
-        { id: 'endDate', label: 'End Date', width: 140 },
-        { id: 'dateTime', label: 'Created At', minWidth: 170 },
+        { id: 'startDateTime', label: 'Start Date-Time'},
+        { id: 'endDateTime', label: 'End Date-Time'},
+        // { id: 'dateTime', label: 'Created At', minWidth: 170 },
         { id: 'action', label: 'Action', width: 100}
     ];
 
     const loadAvailableCompetitions = () => {
         let grade = props.user.grade;
         // get available list
-        firestore.collection('competitions').where('grade', '==', grade)
+        firestore.collection('competitions').where('grades', 'array-contains', parseInt(grade))
             .get()
             .then(async competitionRef => {
                 let tempAvailableCompetitions = [];
@@ -126,22 +127,35 @@ const Dashboard = (props) => {
 
                     if (item.exists) {
                         let data = item.data();
+
+                        if (!data.status) {
+                            continue;
+                        }
                         let comp_id = item.id;
+
+                        let endDateTime = data.endDateTime;
+                        let now  = new Date().getTime();
+                        let end = new Date(endDateTime.seconds * 1000).getTime();
+
+                        if (now > end) {
+                            continue;
+                        }
+
                         // find in
                         let user_id = props.user.id;
                         let path = `users/${user_id}/competitions`;
 
                         let compRef = await firestore.collection(path).doc(comp_id).get();
-                        if (!compRef.exists) {
-                            if (data.status) {
-                                tempAvailableCompetitions.push({
-                                    no,
-                                    id: item.id,
-                                    ...data
-                                })
-                            }
-                            no++;
+                        if (compRef.exists) {
+                            continue;
                         }
+
+                        tempAvailableCompetitions.push({
+                            no,
+                            id: item.id,
+                            ...data
+                        });
+                        no ++;
                     }
                 }
 
@@ -159,7 +173,7 @@ const Dashboard = (props) => {
         let path = `users/${user_id}/competitions`;
 
         // get available list
-        firestore.collection(path).where('grade', '==', grade)
+        firestore.collection(path).where('grades', 'array-contains', parseInt(grade))
             .get()
             .then(competitionRef => {
                 let tempScoredCompetitions = [];
@@ -170,6 +184,7 @@ const Dashboard = (props) => {
                 competitionRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
+
                         if (data.score) {
                             // put to score
                             tempScoredCompetitions.push({
@@ -207,7 +222,7 @@ const Dashboard = (props) => {
     }, [props.user]);
 
     const onShowStartCompetitionDlg = (row) => {
-        setSelectedCompId(row.id);
+        selectedId = row.id;
         setShowStartConfirmDlg(true);
     };
 
@@ -220,7 +235,7 @@ const Dashboard = (props) => {
         props.history.push({
             pathname: '/user/competition',
             state: {
-                competitionId: selectedCompId,
+                competitionId: selectedId,
                 user: props.user
             }
         });
@@ -254,7 +269,7 @@ const Dashboard = (props) => {
             </DialogContent>
             <DialogActions className='justify-content-center'>
                 <BtnDialogConfirm onClick={() => setShowStartConfirmDlg(false)} variant='contained' title='No' width='120px' disabled={props.initLoading} backgroundColor={COLOR_CANCEL_BUTTON}/>
-                <BtnDialogConfirm disabled={selectedCompId == '' ? true : false} width='120px'
+                <BtnDialogConfirm width='120px'
                                   onClick={() => onGotoCompetition()}
                                   variant='contained' title='Yes' disabled={props.initLoading}/>
             </DialogActions>
@@ -288,8 +303,10 @@ const Dashboard = (props) => {
                     :
                     <div className='row py-2'>
                         <div className='col-12'>
-                            <h2>Welcome <span style={{color: 'red'}}> {props.user ? props.user.fullName : ''}</span></h2>
-                            <h2>Your grade is <span style={{color: 'red'}}> {props.user ? props.user.grade : ''}</span>.</h2>
+                            <div style={{fontSize: '36px', fontWeight: 'bolder'}}>Welcome <span style={{color: 'red'}}> {props.user ? props.user.fullName : ''}</span></div>
+                            <div style={{display: 'flex', alignItems: 'center'}}>
+                                <div style={{fontSize: '30px', fontWeight: 'bolder'}}>Your grade is </div>&nbsp;&nbsp;<BtnGrade number={props.user ? props.user.grade : ''} selected/>
+                            </div>
                         </div>
                     </div>
             }
@@ -528,7 +545,7 @@ const Dashboard = (props) => {
                                                     key={key}
                                                     align={column.align}
                                                     style={{ maxWidth: column.maxWidth, width: column.width}}
-                                                    className={column.id == 'action' ? 'text-right' : ''}
+                                                    className={['action', 'startDateTime', 'endDateTime'].includes(column.id) ? 'text-center' : ''}
                                                 >
                                                     <TableSortLabel active={availableSetting.orderBy === column.id}
                                                                     direction={availableSetting.orderBy == column.id ? availableSetting.order : 'asc'}
@@ -574,10 +591,27 @@ const Dashboard = (props) => {
                                                                             {new Date(value.seconds * 1000).toLocaleString()}
                                                                         </TableCell>
                                                                     )
+                                                                } else if (column.id == 'startDateTime') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            {new Date(row.startDateTime.seconds * 1000).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'endDateTime') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            {new Date(row.startDateTime.seconds * 1000).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                            {
+                                                                                new Date().getTime() >= new Date(row.startDateTime.seconds * 1000).getTime() ?
+                                                                                    <BtnDialogConfirm title='Start' onClick={() => onShowStartCompetitionDlg(row)}/>
+                                                                                    :
+                                                                                    null
+                                                                            }
                                                                         </TableCell>
                                                                     )
                                                                 } else {

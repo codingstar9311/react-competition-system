@@ -113,7 +113,7 @@ const Competition = (props) => {
 
                                     let setInfo = {
                                         competitionId,
-                                        grade: competitionData.grade,
+                                        grades: competitionData.grades,
                                         competitionName: competitionData.competitionName,
                                         problems: tempProblems,
                                         warningCount: 0,
@@ -150,22 +150,20 @@ const Competition = (props) => {
         setOpenWarningDlg(true);
     };
 
-    // const onCloseWebpage = (event) => {
-    //     event.preventDefault();
-    //
-    //     return event.returnValue = "Are you sure?";
-    // };
+    const onCloseWebpage = (event) => {
+        event.preventDefault();
+
+        return event.returnValue = "Do you really want to close?";
+    };
 
     const onGotoSubmittedPage = () => {
         onEndTime();
         window.removeEventListener('blur', onBlur);
+        window.removeEventListener('beforeunload', onBlur);
+
         setTimeLeft(0);
         props.history.push('/user/submitted');
     };
-
-    useEffect(() => {
-
-    }, [currentCompetition]);
 
     useEffect(() => {
         // get selected competition index
@@ -178,7 +176,7 @@ const Competition = (props) => {
             }
         }
 
-    }, [props.user]);
+    }, [props.state]);
 
     useEffect(() => {
         if (timeLeft != null && timeLeft < 0) {
@@ -208,7 +206,7 @@ const Competition = (props) => {
         } else {
             console.log(currentCompetition);
             window.addEventListener('blur', onBlur);
-            // window.addEventListener('beforeunload', onCloseWebpage);
+            window.addEventListener('beforeunload', onCloseWebpage);
 
             timeInterval = setInterval(() => {
                 curTime = new Date();
