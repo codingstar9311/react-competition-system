@@ -77,7 +77,7 @@ const Competitions = (props) => {
     const [selectedProblems, setSelectedProblems] = useState([]);
 
     const [limitTime, setLimitTime] = useState(20);
-    const [limitWarningCount, setLimitWarningCount] = useState(20);
+    const [limitWarningCount, setLimitWarningCount] = useState(15);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -105,6 +105,34 @@ const Competitions = (props) => {
 
     const classes = useStyles();
 
+    const [filterGrades, setFilterGrades] = useState([]);
+    const [filterCompNames, setFilterCompNames] = useState([]);
+
+    useEffect(() => {
+        onLoadCompetitions();
+    }, [filterGrades, filterCompNames]);
+
+    const onChangeFilterGrades = (val) => {
+        let index = filterGrades.indexOf(val);
+
+        if (index > -1) {
+            filterGrades.splice(index, 1);
+            setFilterGrades([...filterGrades])
+        } else {
+            setFilterGrades([...filterGrades, val]);
+        }
+    };
+
+    const onChangeFilterCompNames = (val) => {
+        let index = filterCompNames.indexOf(val);
+
+        if (index > -1) {
+            filterCompNames.splice(index, 1);
+            setFilterCompNames([...filterCompNames])
+        } else {
+            setFilterCompNames([...filterCompNames, val]);
+        }
+    };
 
     const onLoadCurrentInfo = (insGrad = '', insCompetitionName = '') => {
         if (insGrad !== '' && insCompetitionName !== '') {
@@ -209,7 +237,8 @@ const Competitions = (props) => {
             })
     };
 
-    const onLoadCompetitions = (searchVal = '') => {
+    const onLoadCompetitions = () => {
+        props.onLoading(true);
         firestore.collection('competitions').orderBy('dateTime', 'desc')
             .get()
             .then(competitionRef => {
@@ -227,26 +256,32 @@ const Competitions = (props) => {
                         let tempLimitTime = data.limitTime ? data.limitTime.toString() : '';
                         let tempLimitWarningCount = data.limitWarningCount ? data.limitWarningCount.toString() : '';
 
-                        if (searchVal != '') {
-                            if (tempGrade.includes(searchVal) || tempCompetition.includes(searchVal)
-                            || tempLimitTime.includes(searchVal) || tempLimitWarningCount.includes(searchVal)
-                            || tempStartDate.includes(searchVal) || tempEndDate.includes(searchVal)) {
-                                tempCompetitions.push({
-                                    no,
-                                    id: item.id,
-                                    ...data
-                                });
-                                no ++;
-
+                        if (filterGrades.length > 0) {
+                            if (!filterGrades.includes(data.grade)) {
+                                return;
                             }
-                        } else {
-                            tempCompetitions.push({
-                                no,
-                                id: item.id,
-                                ...data
-                            });
-                            no ++;
                         }
+
+                        if (filterCompNames.length > 0) {
+                            if (!filterCompNames.includes(tempCompetition)) {
+                                return;
+                            }
+                        }
+
+                        if (searchText !== '') {
+                            if (!tempGrade.includes(searchText) && !tempCompetition.includes(searchText)
+                                && !tempLimitTime.includes(searchText) && !tempLimitWarningCount.includes(searchText)
+                                && !tempStartDate.includes(searchText) && !tempEndDate.includes(searchText)) {
+                                return;
+                            }
+                        }
+
+                        tempCompetitions.push({
+                            no,
+                            id: item.id,
+                            ...data
+                        });
+                        no ++;
                     }
                 });
 
@@ -255,12 +290,14 @@ const Competitions = (props) => {
             })
             .catch(error => {
                 toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
             });
     };
 
     useEffect(() => {
         setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
-        onLoadCompetitions();
         onLoadTotalProblems();
     }, []);
 
@@ -604,8 +641,42 @@ const Competitions = (props) => {
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedId)}/>
             <DlgDeleteConfirm title="Do you really want to restart this competition?" open={openRestartDialog} disabled={restartLoading || selectedId === ''} onNo={() => {setOpenRestartDialog(false)}} onYes={() => onRestartCompetition(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
+                <div className='col-lg-12 col-sm-12'>
+                    <h2 className='my-1'>Competition List</h2>
+                </div>
                 <div className='col-lg-4 col-sm-12'>
-                    <h2 className='my-0'>Competitions</h2>
+                    <div className='row align-items-center'>
+                        <div className='col-lg-3 col-sm-12 text-left'>
+                            Grades:
+                        </div>
+                        <div className='col-lg-9 col-sm-12 justify-content-center' style={{display: "flex"}}>
+                            {
+                                [6, 7, 8, 9, 10].map((val, key) => {
+                                    return (
+                                        <div className='px-2' key={key}>
+                                            <BtnGrade number={val} onClick={() => onChangeFilterGrades(val)} selected={filterGrades.includes(val)}/>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
+                    <div className='row align-items-center'>
+                        <div className='col-lg-3 col-sm-12 text-left py-1'>
+                            Competitions:
+                        </div>
+                        <div className='col-lg-9 col-sm-12 justify-content-center py-1' style={{display: "flex"}}>
+                            {
+                                ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
+                                    return (
+                                        <div className='px-2' key={key}>
+                                            <BtnCompetitionName name={val} onClick={() => onChangeFilterCompNames(val)} selected={filterCompNames.includes(val)}/>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination
@@ -627,7 +698,7 @@ const Competitions = (props) => {
                             onChange={(e) => setSearchText(e.target.value)}
                             onKeyUp={e => {
                                 if (e.key == 'Enter') {
-                                    onLoadCompetitions(searchText);
+                                    onLoadCompetitions();
                                 }
                             }}
                             endAdornment={
@@ -635,7 +706,7 @@ const Competitions = (props) => {
                                     <IconButton
                                         aria-label="toggle password visibility"
                                         onClick={() => {
-                                            onLoadCompetitions(searchText)
+                                            onLoadCompetitions()
                                         }}
                                         edge="end"
                                     >

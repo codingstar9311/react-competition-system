@@ -382,7 +382,7 @@ const CompetitionResults = (props) => {
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2'>
                 <div className='col-lg-4 col-sm-12'>
-                    <h2 className='my-0'>User List</h2>
+                    <h2 className='my-1'>User List</h2>
                 </div>
                 <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination

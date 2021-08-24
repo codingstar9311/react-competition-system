@@ -502,7 +502,7 @@ const Problems = (props) => {
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
                 <div className='col-lg-12 col-sm-12'>
-                    <h2 className='my-0'>Problem List</h2>
+                    <h2 className='my-1'>Problem List</h2>
                 </div>
                 <div className='col-lg-4 col-sm-12'>
                     <div className='row align-items-center'>
