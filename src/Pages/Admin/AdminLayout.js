@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Sidebar from '../../Components/Admin/Sidebar';
 import {Route, Switch} from 'react-router-dom';
 import Dashboard from "./Dashboard";
@@ -7,8 +7,11 @@ import {auth, getUserDocument} from "../../firebase";
 import Problems from "./Problems";
 import Competitions from "./Competitions";
 import CompetitionResults from "./CompetitionResults";
-
+import LoadingOverlay from 'react-loading-overlay';
+import Competition from "../Users/Competition";
 const AdminLayout = (props) => {
+
+    const [fullLoading, setFullLoading] = useState(false);
 
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
@@ -30,15 +33,17 @@ const AdminLayout = (props) => {
     return (
         <>
             <Sidebar history={props.history}/>
-            <div className='container-fluid py-1 overflow-auto'>
-                <Switch>
-                    <Route path={'/admin/dashboard'} component={Dashboard}/>
-                    <Route path={'/admin/users'} component={Users}/>
-                    <Route path={'/admin/problems'} component={Problems}/>
-                    <Route path={'/admin/competitions'} component={Competitions}/>
-                    <Route path={'/admin/competition-results'} component={CompetitionResults}/>
-                </Switch>
-            </div>
+            <LoadingOverlay active={fullLoading} className='full-loading' spinner text='loading'>
+                <div className='container-fluid py-1 overflow-auto'>
+                    <Switch>
+                        <Route path={'/admin/dashboard'} render={(props) => <Dashboard {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                        <Route path={'/admin/users'} render={(props) => <Users {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                        <Route path={'/admin/problems'} render={(props) => <Problems {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                        <Route path={'/admin/competitions'} render={(props) => <Competitions {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                        <Route path={'/admin/competition-results'} render={(props) => <CompetitionResults {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                    </Switch>
+                </div>
+            </LoadingOverlay>
         </>
     )
 };

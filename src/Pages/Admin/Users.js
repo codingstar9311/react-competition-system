@@ -107,6 +107,7 @@ const Users = (props) => {
     };
 
     const onLoadUsers = (searchVal = '', insFilterGrades = []) => {
+        props.onLoading(true);
         firestore.collection('users').orderBy('dateTime', 'desc')
             .get()
             .then(usersRef => {
@@ -175,6 +176,9 @@ const Users = (props) => {
             })
             .catch(error => {
                 toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
             });
     };
 

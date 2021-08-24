@@ -42,6 +42,10 @@ body {
   padding-top: 100px;
 }
 
+.full-loading {
+  width: 100%;
+}
+
 .blink-warning {
   color: red;
   font-weight: bolder;
