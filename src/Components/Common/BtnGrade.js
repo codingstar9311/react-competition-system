@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        border: 'solid 1px #000',
+        border: 'solid 2px #6f6f6f',
         minWidth: 'unset !important'
     }
 }));

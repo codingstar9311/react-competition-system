@@ -89,6 +89,7 @@ const Users = (props) => {
     const [selectedId, setSelectedId] = useState('');
     const [fullName, setFullName] = useState('');
     const [grade, setGrade] = useState(0);
+    const [filterGrades, setFilterGrades] = useState([]);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -269,6 +270,16 @@ const Users = (props) => {
         onToggleDialog();
     };
 
+    const onChangeFilterGrades = (val) => {
+        let index = filterGrades.indexOf(val);
+        if (index > -1) {
+            filterGrades.splice(index, 1);
+            setFilterGrades([...filterGrades])
+        } else {
+            setFilterGrades([...filterGrades, val]);
+        }
+    };
+
     const onDeleteUser = async (user_id) => {
 
         setDeleteLoading(true);
@@ -345,7 +356,7 @@ const Users = (props) => {
                     <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <div className='row align-items-center'>
                             <div className='col-lg-3 col-sm-12 text-left'>
-                                Grade
+                                Grade:
                             </div>
                             <div className='col-lg-9 col-sm-12' style={{display: "flex"}}>
                                 {
@@ -425,8 +436,26 @@ const Users = (props) => {
             }
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteUser(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
-                <div className='col-lg-4 col-sm-12'>
+                <div className='col-lg-12'>
                     <h2 className='my-0'>User List</h2>
+                </div>
+                <div className='col-lg-4 col-sm-12'>
+                    <div className='row align-items-center'>
+                        <div className='col-lg-3 col-sm-12 text-left'>
+                            Filter:
+                        </div>
+                        <div className='col-lg-9 col-sm-12' style={{display: "flex"}}>
+                            {
+                                [6, 7, 8, 9, 10].map((val, key) => {
+                                    return (
+                                        <div className='px-2' key={key}>
+                                            <BtnGrade number={val} onClick={() => onChangeFilterGrades(val)} selected={filterGrades.includes(val)}/>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination
