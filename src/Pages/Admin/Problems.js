@@ -56,7 +56,6 @@ const Problems = (props) => {
     const columns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'problemName', label: 'Problem Name', minWidth: 170 },
-        { id: 'grade', label: 'Grade', minWidth: 170 },
         { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
         { id: 'question', label: 'Question Content', minWidth: 170 },
         { id: 'answers', label: 'Answers', minWidth: 170 },
@@ -98,16 +97,32 @@ const Problems = (props) => {
     const [question, setQuestion] = useState('');
     const [competitionName, setCompetitionName] = useState('');
 
+    const [filterCompNames, setFilterCompNames] = useState([]);
+
     const [loading, setLoading] = useState(false);
 
     const classes = useStyles();
-
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
-    const onLoadProblems = (searchVal = '') => {
+    useEffect(() => {
+        onLoadProblems();
+    }, [filterCompNames]);
+
+    const onChangeFilterCompNames = (val) => {
+        let index = filterCompNames.indexOf(val);
+
+        if (index > -1) {
+            filterCompNames.splice(index, 1);
+            setFilterCompNames([...filterCompNames])
+        } else {
+            setFilterCompNames([...filterCompNames, val]);
+        }
+    };
+
+    const onLoadProblems = () => {
         firestore.collection('problems').orderBy('dateTime', 'desc')
             .get()
             .then(problemRef => {
@@ -122,9 +137,9 @@ const Problems = (props) => {
                         let competitionName = data.competitionName ? data.competitionName : '';
                         let question = data.question ? data.question : '';
 
-                        if (searchVal != '') {
-                            if (problemName.includes(searchVal) || grade.includes(searchVal) || competitionName.includes(searchVal)
-                            || question.includes(searchVal)) {
+                        if (searchText != '') {
+                            if (problemName.includes(searchText) || grade.includes(searchText) || competitionName.includes(searchText)
+                            || question.includes(searchText)) {
                                 tempProblems.push({
                                     no,
                                     id: item.id,
@@ -481,8 +496,26 @@ const Problems = (props) => {
             }
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
-                <div className='col-lg-4 col-sm-12'>
+                <div className='col-lg-12 col-sm-12'>
                     <h2 className='my-0'>Problem List</h2>
+                </div>
+                <div className='col-lg-4 col-sm-12'>
+                    <div className='row align-items-center'>
+                        <div className='col-lg-3 col-sm-12 text-left'>
+                            Filter:
+                        </div>
+                        <div className='col-lg-9 col-sm-12 justify-content-center' style={{display: "flex"}}>
+                            {
+                                ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
+                                    return (
+                                        <div className='px-2' key={key}>
+                                            <BtnCompetitionName name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div className='col-lg-4 col-sm-12 text-right'>
                     <TablePagination

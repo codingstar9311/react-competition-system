@@ -98,7 +98,7 @@ const Users = (props) => {
     const classes = useStyles();
 
     useEffect(() => {
-        onLoadUsers(searchText, filterGrades);
+        onLoadUsers();
     }, [filterGrades]);
 
 
@@ -106,7 +106,7 @@ const Users = (props) => {
         setPage(newPage);
     };
 
-    const onLoadUsers = (searchVal = '', insFilterGrades = []) => {
+    const onLoadUsers = () => {
         props.onLoading(true);
         firestore.collection('users').orderBy('dateTime', 'desc')
             .get()
@@ -123,8 +123,8 @@ const Users = (props) => {
                             if (filterGrades.includes(grade)) {
                                 grade = grade.toString();
                                 if (data.type === 'user') {
-                                    if (searchVal != '') {
-                                        if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
+                                    if (searchText != '') {
+                                        if (fullName.includes(searchText) || email.includes(searchText) || grade.includes(searchText)) {
                                             tempUsers.push({
                                                 no,
                                                 id: item.id,
@@ -146,8 +146,8 @@ const Users = (props) => {
                         } else {
                             grade = grade.toString();
                             if (data.type === 'user') {
-                                if (searchVal != '') {
-                                    if (fullName.includes(searchVal) || email.includes(searchVal) || grade.includes(searchVal)) {
+                                if (searchText != '') {
+                                    if (fullName.includes(searchText) || email.includes(searchText) || grade.includes(searchText)) {
                                         tempUsers.push({
                                             no,
                                             id: item.id,
@@ -307,15 +307,13 @@ const Users = (props) => {
     };
 
     const onChangeFilterGrades = (val) => {
-        let resArr = filterGrades;
-        let index = resArr.indexOf(val);
+        let index = filterGrades.indexOf(val);
 
         if (index > -1) {
             filterGrades.splice(index, 1);
-            setFilterGrades([...resArr])
+            setFilterGrades([...filterGrades])
         } else {
-            resArr = [...filterGrades, val];
-            setFilterGrades([...resArr]);
+            setFilterGrades([...filterGrades, val]);
         }
     };
 
@@ -483,7 +481,7 @@ const Users = (props) => {
                         <div className='col-lg-3 col-sm-12 text-left'>
                             Filter:
                         </div>
-                        <div className='col-lg-9 col-sm-12' style={{display: "flex"}}>
+                        <div className='col-lg-9 col-sm-12 justify-content-center' style={{display: "flex"}}>
                             {
                                 [6, 7, 8, 9, 10].map((val, key) => {
                                     return (
@@ -516,7 +514,7 @@ const Users = (props) => {
                             onChange={(e) => setSearchText(e.target.value)}
                             onKeyUp={e => {
                                 if (e.key == 'Enter') {
-                                    onLoadUsers(searchText);
+                                    onLoadUsers();
                                 }
                             }}
                             endAdornment={
@@ -524,7 +522,7 @@ const Users = (props) => {
                                     <IconButton
                                         aria-label="toggle password visibility"
                                         onClick={() => {
-                                            onLoadUsers(searchText)
+                                            onLoadUsers()
                                         }}
                                         edge="end"
                                     >
