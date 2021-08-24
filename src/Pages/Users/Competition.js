@@ -147,8 +147,14 @@ const Competition = (props) => {
     };
 
     const onBlur = () => {
-        // setOpenWarningDlg(true);
+        setOpenWarningDlg(true);
     };
+
+    // const onCloseWebpage = (event) => {
+    //     event.preventDefault();
+    //
+    //     return event.returnValue = "Are you sure?";
+    // };
 
     const onGotoSubmittedPage = () => {
         onEndTime();
@@ -164,9 +170,8 @@ const Competition = (props) => {
     useEffect(() => {
         // get selected competition index
         if (props.user) {
-            competitionId = location.state.competitionId;
-
-            if (competitionId != '') {
+            if (location.state.competitionId != undefined && location.state.competitionId != '') {
+                competitionId = location.state.competitionId;
                 loadInitProblems();
             } else {
                 props.history.push('/user/dashboard');
@@ -203,6 +208,7 @@ const Competition = (props) => {
         } else {
             console.log(currentCompetition);
             window.addEventListener('blur', onBlur);
+            // window.addEventListener('beforeunload', onCloseWebpage);
 
             timeInterval = setInterval(() => {
                 curTime = new Date();
