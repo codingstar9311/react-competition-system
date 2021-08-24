@@ -24,7 +24,6 @@ import {
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
 import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
-import BtnGrade from "../../Components/Common/BtnGrade";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
@@ -93,7 +92,6 @@ const Problems = (props) => {
     const [modalTitle, setModalTitle] = useState('Add New Problem');
     const [selectedId, setSelectedId] = useState('');
     const [problemName, setProblemName] = useState('');
-    const [grade, setGrade] = useState(0);
     const [question, setQuestion] = useState('');
     const [competitionName, setCompetitionName] = useState('');
 
@@ -123,6 +121,8 @@ const Problems = (props) => {
     };
 
     const onLoadProblems = () => {
+
+        props.onLoading(true);
         firestore.collection('problems').orderBy('dateTime', 'desc')
             .get()
             .then(problemRef => {
@@ -133,13 +133,42 @@ const Problems = (props) => {
                         let data = item.data();
 
                         let problemName = data.problemName ? data.problemName : '';
-                        let grade = data.grade ? data.grade.toString() : '';
                         let competitionName = data.competitionName ? data.competitionName : '';
                         let question = data.question ? data.question : '';
 
-                        if (searchText != '') {
-                            if (problemName.includes(searchText) || grade.includes(searchText) || competitionName.includes(searchText)
-                            || question.includes(searchText)) {
+                        if (filterCompNames.length > 0) {
+                            if (filterCompNames.includes(competitionName)) {
+                                if (searchText !== '') {
+                                    if (problemName.includes(searchText) || competitionName.includes(searchText)
+                                        || question.includes(searchText)) {
+                                        tempProblems.push({
+                                            no,
+                                            id: item.id,
+                                            ...data
+                                        });
+                                        no ++;
+                                    }
+                                } else {
+                                    tempProblems.push({
+                                        no,
+                                        id: item.id,
+                                        ...data
+                                    });
+                                    no ++;
+                                }
+                            }
+                        } else {
+                            if (searchText !== '') {
+                                if (problemName.includes(searchText) || competitionName.includes(searchText)
+                                    || question.includes(searchText)) {
+                                    tempProblems.push({
+                                        no,
+                                        id: item.id,
+                                        ...data
+                                    });
+                                    no ++;
+                                }
+                            } else {
                                 tempProblems.push({
                                     no,
                                     id: item.id,
@@ -147,13 +176,6 @@ const Problems = (props) => {
                                 });
                                 no ++;
                             }
-                        } else {
-                            tempProblems.push({
-                                no,
-                                id: item.id,
-                                ...data
-                            });
-                            no ++;
                         }
                     }
                 });
@@ -164,12 +186,14 @@ const Problems = (props) => {
             })
             .catch(error => {
                 toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
             });
     };
 
     useEffect(() => {
         setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
-        onLoadProblems();
     }, []);
 
     const handleChangeRowsPerPage = (event) => {
@@ -194,7 +218,6 @@ const Problems = (props) => {
         let problemInfo = {
             problemName,
             question,
-            grade,
             competitionName,
             answers,
             correctAnswer,
@@ -250,7 +273,6 @@ const Problems = (props) => {
 
         setProblemName(row.problemName);
         setCompetitionName(row.competitionName);
-        setGrade(row.grade);
         setQuestion(row.question);
 
         setAnswers(row.answers);
@@ -266,7 +288,6 @@ const Problems = (props) => {
         setProblemName('');
         setQuestion('');
 
-        setGrade('');
         setCompetitionName('');
         setAnswers([...initAnswers]);
         setCorrectAnswer('');
@@ -358,22 +379,6 @@ const Problems = (props) => {
                         />
                     </div>
                     <div className='col-lg-5 col-sm-10 px-2'>
-                        <div className='row align-items-center'>
-                            <div className='col-lg-3 col-sm-12 text-left'>
-                                Grade
-                            </div>
-                            <div className='col-lg-9 col-sm-12 justify-content-around' style={{display: "flex"}}>
-                                {
-                                    [6, 7, 8, 9, 10].map((val, key) => {
-                                        return (
-                                            <div className='px-2' key={key} >
-                                                <BtnGrade number={val} onClick={() => setGrade(val)} selected={val == grade ? true : false}/>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
@@ -396,7 +401,7 @@ const Problems = (props) => {
                                     ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
                                         return (
                                             <div className='px-2' key={key}>
-                                                <BtnCompetitionName name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                                <BtnCompetitionName name={val} onClick={() => setCompetitionName(val)} selected={val === competitionName}/>
                                             </div>
                                         )
                                     })
@@ -509,7 +514,7 @@ const Problems = (props) => {
                                 ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
                                     return (
                                         <div className='px-2' key={key}>
-                                            <BtnCompetitionName name={val} onClick={() => setCompetitionName(val)} selected={val == competitionName ? true : false}/>
+                                            <BtnCompetitionName name={val} onClick={() => onChangeFilterCompNames(val)} selected={filterCompNames.includes(val)}/>
                                         </div>
                                     )
                                 })
@@ -537,7 +542,7 @@ const Problems = (props) => {
                             onChange={(e) => setSearchText(e.target.value)}
                             onKeyUp={e => {
                                 if (e.key == 'Enter') {
-                                    onLoadProblems(searchText);
+                                    onLoadProblems();
                                 }
                             }}
                             endAdornment={
@@ -545,7 +550,7 @@ const Problems = (props) => {
                                     <IconButton
                                         aria-label="toggle password visibility"
                                         onClick={() => {
-                                            onLoadProblems(searchText)
+                                            onLoadProblems()
                                         }}
                                         edge="end"
                                     >
@@ -595,13 +600,7 @@ const Problems = (props) => {
                                                 <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                                     {columns.map((column, subKey) => {
                                                         const value = row[column.id];
-                                                        if (column.id == 'grade') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <BtnGrade number={value} selected={true}/>
-                                                                </TableCell>
-                                                            )
-                                                        } if (column.id == 'competitionName') {
+                                                        if (column.id == 'competitionName') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`} align='center'>
                                                                     <BtnCompetitionName name={value} selected={true}/>
