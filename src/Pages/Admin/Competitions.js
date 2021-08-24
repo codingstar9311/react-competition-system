@@ -31,6 +31,9 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 
+const initLimitWarningCount = 15;
+const initLimitTime = 20;
+
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -142,8 +145,8 @@ const Competitions = (props) => {
                 .get()
                 .then(compRef => {
                     let selProblems = [];
-                    let tempLimitTime = 20;
-                    let tempLimitWarningCount = 20;
+                    let tempLimitTime = initLimitTime;
+                    let tempLimitWarningCount = initLimitWarningCount;
                     let tempStartDate = '';
                     let tempEndDate = '';
 
@@ -187,7 +190,7 @@ const Competitions = (props) => {
         setPage(newPage);
     };
 
-    const onLoadTotalProblems = (filterGrade = '', filterCompName = '') => {
+    const onLoadTotalProblems = (insCompetitoinName = '') => {
         firestore.collection('problems')
             .orderBy('problemName', 'desc')
             .get()
@@ -200,33 +203,14 @@ const Competitions = (props) => {
                         let tempCompName = data.competitionName ? data.competitionName : '';
                         let tempGrade = data.grade ? data.grade : '';
 
-                        if (filterGrade != '' && filterCompName != '') {
-                            if (filterGrade == tempGrade && filterCompName == tempCompName) {
-                                tempTotalProblems.push({
-                                    id: item.id,
-                                    problemName: data.problemName
-                                });
-                            }
-                        } else if (filterGrade != '') {
-                            if (filterGrade == tempGrade) {
-                                tempTotalProblems.push({
-                                    id: item.id,
-                                    problemName: data.problemName
-                                });
-                            }
-                        } else if (filterCompName != '') {
-                            if (filterCompName == tempCompName) {
-                                tempTotalProblems.push({
-                                    id: item.id,
-                                    problemName: data.problemName
-                                });
-                            }
-                        } else {
-                            tempTotalProblems.push({
-                                id: item.id,
-                                problemName: data.problemName
-                            });
+                        if (insCompetitoinName !== '' && insCompetitoinName !== tempCompName) {
+                            return;
                         }
+
+                        tempTotalProblems.push({
+                            id: item.id,
+                            problemName: data.problemName
+                        });
                     }
                 });
 
@@ -298,7 +282,6 @@ const Competitions = (props) => {
 
     useEffect(() => {
         setMaxHeight(`${(window.innerHeight - document.getElementById('admin-header').offsetHeight - 10)}px`);
-        onLoadTotalProblems();
     }, []);
 
     const handleChangeRowsPerPage = (event) => {
