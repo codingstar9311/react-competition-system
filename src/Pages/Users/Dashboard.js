@@ -117,11 +117,13 @@ const Dashboard = (props) => {
         // get available list
         firestore.collection('competitions').where('grade', '==', grade)
             .get()
-            .then(competitionRef => {
+            .then(async competitionRef => {
                 let tempAvailableCompetitions = [];
 
                 let no = 1;
-                competitionRef.docs.forEach(item => {
+                for (let i = 0; i < competitionRef.docs.length; i++) {
+                    let item = competitionRef.docs[i];
+
                     if (item.exists) {
                         let data = item.data();
                         let comp_id = item.id;
@@ -129,22 +131,19 @@ const Dashboard = (props) => {
                         let user_id = props.user.id;
                         let path = `users/${user_id}/competitions`;
 
-                        firestore.collection(path).where('competitionId', '==', comp_id)
-                            .get()
-                            .then(compRef => {
-                                if (compRef.docs.length < 0) {
-                                    if (data.status) {
-                                        tempAvailableCompetitions.push({
-                                            no,
-                                            id: item.id,
-                                            ...data
-                                        })
-                                    }
-                                    no ++;
-                                }
-                            });
+                        let compRef = await firestore.collection(path).doc(comp_id).get();
+                        if (!compRef.exists) {
+                            if (data.status) {
+                                tempAvailableCompetitions.push({
+                                    no,
+                                    id: item.id,
+                                    ...data
+                                })
+                            }
+                            no++;
+                        }
                     }
-                });
+                }
 
                 setAvailableCompList([...tempAvailableCompetitions]);
             })
@@ -193,9 +192,7 @@ const Dashboard = (props) => {
                 });
 
                 setScoredCompList([...tempScoredCompetitions]);
-                console.log(tempScoredCompetitions);
                 setWaitingCompList([...tempWaitingCompetitions]);
-                console.log(tempWaitingCompetitions);
             })
             .catch(error => {
                 toast.error(error.message);
