@@ -210,7 +210,6 @@ const Competition = (props) => {
             onEndTime();
             props.history.push('/user/submitted');
         } else {
-            console.log(currentCompetition);
             window.addEventListener('blur', onBlur);
             window.addEventListener('beforeunload', onCloseWebpage);
 

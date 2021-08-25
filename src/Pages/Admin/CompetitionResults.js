@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, Replay as ReplayIcon } from "@material-ui/icons";
+import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, Bookmarks as BookmarksIcon } from "@material-ui/icons";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -35,7 +35,13 @@ import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumb
 const initLimitWarningCount = 15;
 const initLimitTime = 20;
 
-let selectedId = '';
+const correctMark = 5;
+const wrongMark = 0;
+const unselectedMark = 1;
+
+let selectedUserId = '';
+let selectedCompId = '';
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -63,6 +69,10 @@ const CompetitionResults = (props) => {
         { id: 'score', label: 'Score'},
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 100 },
         { id: 'warningCount', label: 'Warning Count', width: 100 },
+        { id: 'problemCount', label: 'Problem Count', width: 120 },
+        { id: 'correctCount', label: 'Correct Count', width: 120 },
+        { id: 'wrongCount', label: 'Wrong Count', width: 120 },
+        { id: 'unselectedCount', label: 'Unselected Count', width: 120 },
         { id: 'startedAt', label: 'Competition Time', minWidth: 250 },
         { id: 'action', label: 'Action', width: 140, textCenter: 'center' }
     ];
@@ -139,6 +149,28 @@ const CompetitionResults = (props) => {
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+    };
+
+    const getCompetitionResultInfo = (insProblems) => {
+        let correctCount = 0;
+        let wrongCount = 0;
+        let unselectedCount = 0;
+
+        insProblems.forEach(prob => {
+            if (prob.selectedAnswer) {
+                if (prob.correctAnswer == prob.selectedAnswer) {
+                    correctCount ++;
+                } else {
+                    wrongCount ++;
+                }
+            } else {
+                unselectedCount ++;
+            }
+        });
+
+        return {
+            correctCount, wrongCount, unselectedCount
+        };
     };
 
     const onLoadProblems = (insCompetitionName = '') => {
@@ -255,7 +287,6 @@ const CompetitionResults = (props) => {
 
 
                 setRows([...tempUserCompetitions]);
-                console.log(tempUserCompetitions);
                 props.onLoading(false);
 
                 setPage(0);
@@ -311,7 +342,7 @@ const CompetitionResults = (props) => {
             endDateTime: new Date(endDateTime),
         };
 
-        if (selectedId === '') { // add
+        if (selectedUserId === '') { // add
             competitionInfo.dateTime = new Date();
             competitionInfo.status = true;
             firestore.collection('competitions').add(competitionInfo)
@@ -329,7 +360,7 @@ const CompetitionResults = (props) => {
 
         } else { // update
             firestore.collection('competitions')
-                .doc(selectedId)
+                .doc(selectedUserId)
                 .set({
                     ...competitionInfo
                 }, {merge: true})
@@ -445,30 +476,50 @@ const CompetitionResults = (props) => {
         return [dateString, timeString].join("T");
     };
 
-    const onEditCompetition = (row) => {
-        selectedId = row.id;
+    const onMakeScoreRow = (row, compInfo, competitionResultInfo) => {
+        let correctCount = competitionResultInfo.correctCount;
+        let wrongCount = competitionResultInfo.wrongCount;
+        let unselectedCount = competitionResultInfo.unselectedCount;
 
-        onLoadProblems(row.competitionName);
-        setGrades(row.grades);
-        setCompetitionName(row.competitionName);
+        let totalScore = correctMark * correctCount + wrongMark * wrongCount + unselectedMark * unselectedCount;
 
+        // save
+        let path = `users/${row.id}/competitions`;
 
-        setSelectedProblems(row.selectedProblems);
-        setLimitTime(row.limitTime);
-        setLimitWarningCount(row.limitWarningCount);
+        props.onLoading(true);
 
-        let tempStartDateTime = getConvertDateTimeFormat(row.startDateTime);
-        let tempEndDateTime = getConvertDateTimeFormat(row.endDateTime);
+        firestore.collection(path).doc(compInfo.competitionId).set({
+            score: totalScore
+        }, {merge: true})
+            .then(() => {
+                toast.success('Scored successfully!',{
+                    autoClose: 1000
+                });
+                let newRows = rows.map(rowInfo => {
+                   if (rowInfo.id == row.id) {
+                        row.competitions = row.competitions.map(comp => {
+                            if (comp.competitionId == compInfo.competitionId) {
+                                comp.score = totalScore;
+                            }
 
-        setStartDateTime(tempStartDateTime);
-        setEndDateTime(tempEndDateTime);
-        setModalTitle('Set Competition');
+                            return comp;
+                        })
+                   }
+                   return rowInfo;
+                });
 
-        onToggleDialog();
+                setRows([...newRows]);
+            })
+            .catch(error => {
+                toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
+            })
     };
 
     const onAddCompetition = () => {
-        selectedId = '';
+        selectedUserId = '';
 
         setGrades([]);
         setCompetitionName('');
@@ -482,26 +533,32 @@ const CompetitionResults = (props) => {
         onToggleDialog();
     };
 
-    const onDeleteCompetition = async (competition_id) => {
+    const onDeleteCompetition = async (user_id, competition_id) => {
 
-        setDeleteLoading(true);
-        firestore.collection('competitions').doc(competition_id)
+        props.onLoading(true);
+        firestore.collection(`users/${user_id}/competitions`).doc(competition_id)
             .delete()
             .then(() => {
                 toast.success('Successfully deleted!');
                 let curRows = rows;
-                curRows = curRows.filter(item => {
-                    if (item.id == selectedId) {
-                        return false;
+                curRows = curRows.map(userInfo => {
+                    if (userInfo.id == user_id) {
+                        userInfo.competitions = userInfo.competitions.filter(comp => {
+                            if (comp.competitionId != competition_id) {
+                                return true;
+                            }
+
+                            return false;
+                        })
                     }
-                    return true;
+                    return userInfo;
                 });
 
                 setRows([...curRows]);
             }).catch(error => {
             toast.error(error.message);
         }).finally(() => {
-            setDeleteLoading(false);
+            props.onLoading(false);
             setOpenDeleteDialog(false);
         });
     };
@@ -711,8 +768,8 @@ const CompetitionResults = (props) => {
             {
                 dialog
             }
-            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedId)}/>
-            <DlgDeleteConfirm title="Do you really want to restart this competition?" open={openRestartDialog} disabled={restartLoading || selectedId === ''} onNo={() => {setOpenRestartDialog(false)}} onYes={() => onRestartCompetition(selectedId)}/>
+            <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedUserId, selectedCompId)}/>
+            <DlgDeleteConfirm title="Do you really want to restart this competition?" open={openRestartDialog} disabled={restartLoading || selectedUserId === ''} onNo={() => {setOpenRestartDialog(false)}} onYes={() => onRestartCompetition(selectedUserId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
                 <div className='col-lg-12 col-sm-12'>
                     <h2 className='my-1'>User Competition Info</h2>
@@ -839,6 +896,8 @@ const CompetitionResults = (props) => {
                                                             {columns.map((column, columnKey) => {
                                                                 const value = row[column.id];
 
+                                                                const competitionResultInfo = getCompetitionResultInfo(compInfo.problems);
+
                                                                 if (column.id == 'no') {
                                                                     return (
                                                                         competitionKey === 0 ?
@@ -889,8 +948,32 @@ const CompetitionResults = (props) => {
                                                                     )
                                                                 } else if (column.id == 'warningCount') {
                                                                     return (
-                                                                        <TableCell key={`body_${columnKey}`}>
-                                                                            <BtnCompetitionNumberSelect number={compInfo.warningCount} status='done'/>
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <BtnGrade number={compInfo.warningCount} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'problemCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <span style={{fontWeight: 'bolder', fontSize: 18}}>{compInfo.problems.length}</span>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'correctCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <span style={{fontWeight: 'bolder', fontSize: 18}}>{competitionResultInfo.correctCount}</span>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'wrongCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <span style={{fontWeight: 'bolder', fontSize: 18}}>{competitionResultInfo.wrongCount}</span>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'unselectedCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <span style={{fontWeight: 'bolder', fontSize: 18}}>{competitionResultInfo.unselectedCount}</span>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'startedAt') {
@@ -906,18 +989,18 @@ const CompetitionResults = (props) => {
                                                                         <TableCell key={`body_${columnKey}`} className='text-right'>
                                                                             <IconButton color='primary'
                                                                                         size='small'
-                                                                                        title="Edit Competition"
-                                                                                        onClick={() => onEditCompetition(row)}>
-                                                                                <EditIcon/>
+                                                                                        title="Set score"
+                                                                                        onClick={() => onMakeScoreRow(row, compInfo, competitionResultInfo)}>
+                                                                                <BookmarksIcon/>
                                                                             </IconButton>
                                                                             &nbsp;
                                                                             <IconButton color='secondary'
                                                                                         size='small'
                                                                                         title="Delete Competition"
                                                                                         onClick={() => {
-                                                                                            selectedId = row.id;
+                                                                                            selectedUserId = row.id;
+                                                                                            selectedCompId = compInfo.competitionId;
                                                                                             setOpenDeleteDialog(true);
-
                                                                                         }}>
                                                                                 <DeleteIcon/>
                                                                             </IconButton>
@@ -992,7 +1075,7 @@ const CompetitionResults = (props) => {
                                                                         <IconButton color='primary'
                                                                                     size='small'
                                                                                     title="Edit Competition"
-                                                                                    onClick={() => onEditCompetition(row)}>
+                                                                                    onClick={() => onMakeScoreRow(row)}>
                                                                             <EditIcon/>
                                                                         </IconButton>
                                                                         &nbsp;
@@ -1000,7 +1083,7 @@ const CompetitionResults = (props) => {
                                                                                     size='small'
                                                                                     title="Delete Competition"
                                                                                     onClick={() => {
-                                                                                        selectedId = row.id;
+                                                                                        selectedUserId = row.id;
                                                                                         setOpenDeleteDialog(true);
 
                                                                                     }}>
