@@ -87,6 +87,7 @@ const Competition = (props) => {
                             .doc(competitionId)
                             .get()
                             .then(async competitionRef => {
+                                props.onLoading(true);
                                 if (competitionRef.exists) {
                                     let tempProblems = [];
 
@@ -130,18 +131,23 @@ const Competition = (props) => {
                                         ...setInfo
                                     });
 
-                                    console.log(setInfo);
-
                                     onStartTimer(setInfo, false);
+                                    props.onLoading(false);
                                 }
                             })
                             .catch(error => {
                                 toast.error(error.message)
+                            })
+                            .finally(() => {
+                                props.onLoading(false);
                             });
                     }
                 })
                 .catch(error => {
                     toast.error(error.message);
+                })
+                .finally(() => {
+                    props.onLoading(false);
                 });
         }
     };
@@ -159,7 +165,7 @@ const Competition = (props) => {
     const onGotoSubmittedPage = () => {
         onEndTime();
         window.removeEventListener('blur', onBlur);
-        window.removeEventListener('beforeunload', onBlur);
+        window.removeEventListener('beforeunload', onCloseWebpage);
 
         setTimeLeft(0);
         props.history.push('/user/submitted');

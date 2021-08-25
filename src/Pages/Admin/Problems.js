@@ -4,7 +4,6 @@ import 'react-pro-sidebar/dist/css/styles.css';
 import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
     TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -491,7 +490,7 @@ const Problems = (props) => {
                 <div className='col-lg-4 col-sm-12'>
                     <div className='row align-items-center'>
                         <div className='col-lg-3 col-sm-12 text-left'>
-                            Filter:
+                            Filter By:
                         </div>
                         <div className='col-lg-9 col-sm-12 justify-content-center' style={{display: "flex"}}>
                             {

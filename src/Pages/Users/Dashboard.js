@@ -114,11 +114,13 @@ const Dashboard = (props) => {
     ];
 
     const loadAvailableCompetitions = () => {
+        props.onLoading(true);
         let grade = props.user.grade;
         // get available list
         firestore.collection('competitions').where('grades', 'array-contains', parseInt(grade))
             .get()
             .then(async competitionRef => {
+                props.onLoading(true);
                 let tempAvailableCompetitions = [];
 
                 let no = 1;
@@ -160,13 +162,19 @@ const Dashboard = (props) => {
                 }
 
                 setAvailableCompList([...tempAvailableCompetitions]);
+                props.onLoading(false);
             })
             .catch(error => {
                 toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
             });
     };
 
     const loadOtherCompetitions = () => {
+
+        props.onLoading(true);
         let grade = props.user.grade;
         let user_id = props.user.id;
 
@@ -211,6 +219,9 @@ const Dashboard = (props) => {
             })
             .catch(error => {
                 toast.error(error.message);
+            })
+            .finally(() => {
+                props.onLoading(false);
             });
     };
 

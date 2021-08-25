@@ -479,7 +479,7 @@ const Users = (props) => {
                 <div className='col-lg-4 col-sm-12'>
                     <div className='row align-items-center'>
                         <div className='col-lg-3 col-sm-12 text-left'>
-                            Filter:
+                            Filter By:
                         </div>
                         <div className='col-lg-9 col-sm-12 justify-content-center' style={{display: "flex"}}>
                             {

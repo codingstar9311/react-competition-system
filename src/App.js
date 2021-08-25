@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
     BrowserRouter as Router,
     Switch,
@@ -10,7 +10,6 @@ import {useHistory} from 'react-router-dom';
 import './App.css';
 import AdminLayout from "./Pages/Admin/AdminLayout";
 import UserLayout from "./Pages/Users/UserLayout";
-import LocalizationProvider from '@material-ui/lab/LocalizationProvider';
 export default function App() {
     const hist = useHistory();
 

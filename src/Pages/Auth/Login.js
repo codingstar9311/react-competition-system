@@ -12,7 +12,6 @@ import IconButton from "@material-ui/core/IconButton";
 import {Visibility, VisibilityOff} from "@material-ui/icons";
 import {COLOR_CANCEL_BUTTON, COLOR_DLG_BORDER_BLUE, COLOR_DLG_TITLE} from "../../Utils/ColorConstants";
 import BtnGrade from "../../Components/Common/BtnGrade";
-import Alert from "@material-ui/lab/Alert/Alert";
 import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 const title = 'Math Tournament';
 
