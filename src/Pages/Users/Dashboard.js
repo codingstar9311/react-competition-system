@@ -246,6 +246,16 @@ const Dashboard = (props) => {
         props.history.push('/login');
     };
 
+    const onGotoViewList = (competition_id) => {
+        props.history.push({
+            pathname: '/user/view-list',
+            state: {
+                competitionId: competition_id,
+                user: props.user
+            }
+        });
+    };
+
     const onGotoCompetition = () => {
         props.history.push({
             pathname: '/user/competition',
@@ -409,9 +419,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='View List' onClick={() => {
-                                                                                alert('view detail List' + row.id)
-                                                                            }}/>
+                                                                            <BtnDialogConfirm title='View List' onClick={() => onGotoViewList(row.id)}/>
                                                                         </TableCell>
                                                                     )
                                                                 }

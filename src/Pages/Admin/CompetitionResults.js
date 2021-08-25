@@ -47,6 +47,7 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: '50px',
         borderColor: COLOR_DLG_BORDER_BLUE,
         paddingBottom: '40px',
+        paddingTop: '40px',
         marginBottom: '14%'
     },
 }));

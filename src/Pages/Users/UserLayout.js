@@ -4,6 +4,7 @@ import Dashboard from "./Dashboard";
 import Competition from "./Competition";
 import Submitted from "./Submitted";
 import LoadingOverlay from "react-loading-overlay";
+import ViewList from "./ViewList";
 
 const UserLayout = (props) => {
 
@@ -36,6 +37,7 @@ const UserLayout = (props) => {
                     <Route path={'/user/dashboard'} render={(props) => <Dashboard {...props} user={user} onLoading={(val) => setFullLoading(val)}/>} />
                     <Route path={'/user/competition'} render={(props) => <Competition {...props} user={user} onLoading={(val) => setFullLoading(val)}/>}/>
                     <Route path={'/user/submitted'} render={(props) => <Submitted {...props} user={user} onLoading={(val) => setFullLoading(val)}/>} />
+                    <Route path={'/user/view-list'} render={(props) => <ViewList {...props} user={user} onLoading={(val) => setFullLoading(val)}/>} />
                 </Switch>
             </div>
         </LoadingOverlay>
