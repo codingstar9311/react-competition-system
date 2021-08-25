@@ -2,15 +2,14 @@ import React, {useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
 import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
-    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
+    TableCell, TablePagination, Button
 } from "@material-ui/core";
-import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, Bookmarks as BookmarksIcon } from "@material-ui/icons";
+import {Delete as DeleteIcon, Search as SearchIcon, Bookmarks as BookmarksIcon } from "@material-ui/icons";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -18,19 +17,12 @@ import Input from "@material-ui/core/Input";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
 import {
     COLOR_ADMIN_MAIN,
-    COLOR_CANCEL_BUTTON,
     COLOR_DLG_BORDER_BLUE,
-    COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
-import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import BtnGrade from "../../Components/Common/BtnGrade";
 
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
-import {Multiselect} from "multiselect-react-dropdown";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
-import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 
 const initLimitWarningCount = 15;
 const initLimitTime = 20;
@@ -87,20 +79,11 @@ const CompetitionResults = (props) => {
         setMaxHeight(`${tempHeight}px`);
     };
 
-    const [problems, setProblems] = useState([]);
-    const [selectedProblems, setSelectedProblems] = useState([]);
-
-    const [limitTime, setLimitTime] = useState(initLimitTime);
-    const [limitWarningCount, setLimitWarningCount] = useState(initLimitWarningCount);
-    const [startDateTime, setStartDateTime] = useState('');
-    const [endDateTime, setEndDateTime] = useState('');
-
     const [rows, setRows] = useState([]);
-    const [openDialog, setOpenDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [openRestartDialog, setOpenRestartDialog] = useState(false);
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
-    const [restartLoading, setRestartLoading] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
 
     // table setting
     const [order, setOrder] = React.useState('asc');
@@ -110,13 +93,6 @@ const CompetitionResults = (props) => {
     // //////
 
     const [searchText, setSearchText] = useState('');
-    const [modalTitle, setModalTitle] = useState('Add Competition');
-    const [grades, setGrades] = useState([]);
-    const [competitionName, setCompetitionName] = useState('');
-
-    const [loading, setLoading] = useState(false);
-
-    const classes = useStyles();
 
     const [filterGrades, setFilterGrades] = useState([]);
     const [filterCompNames, setFilterCompNames] = useState([]);
@@ -171,36 +147,6 @@ const CompetitionResults = (props) => {
         return {
             correctCount, wrongCount, unselectedCount
         };
-    };
-
-    const onLoadProblems = (insCompetitionName = '') => {
-        firestore.collection('problems')
-            .orderBy('problemName', 'desc')
-            .get()
-            .then(problemRef => {
-                let tempProblems = [];
-                problemRef.docs.forEach(item => {
-                    if (item.exists) {
-                        let data = item.data();
-
-                        let tempCompName = data.competitionName ? data.competitionName : '';
-
-                        if (insCompetitionName !== '' && insCompetitionName !== tempCompName) {
-                            return;
-                        }
-
-                        tempProblems.push({
-                            id: item.id,
-                            problemName: data.problemName
-                        });
-                    }
-                });
-
-                setProblems(tempProblems);
-            })
-            .catch(error => {
-                toast.error(error.message);
-            })
     };
 
     const onLoadCompetitionResults = () => {
@@ -308,175 +254,53 @@ const CompetitionResults = (props) => {
         setPage(0);
     };
 
-    const onToggleDialog = () => {
-        setOpenDialog(!openDialog);
-    };
+    const onMakeAllScores = async () => {
+        setConfirmLoading(true);
 
-    const onSaveCompetition = async (event) => {
-        event.preventDefault();
+        let curRows = rows;
 
-        if (selectedProblems.length < 1) {
-            toast.warning('Please select problems!');
-            return;
-        }
+        for (let i = 0; i < curRows.length; i++) {
+            let tempRow = curRows[i];
 
-        if (endDateTime === '' || startDateTime === '') {
-            toast.warning('Please select duration.');
-            return;
-        }
+            let tempCompetitions = tempRow.competitions;
 
-        if (endDateTime <= startDateTime) {
-            toast.warning('Please select correct durations. End date time should be bigger than start date time');
-            return;
-        }
-
-        setLoading(true);
-
-        let competitionInfo = {
-            grades,
-            competitionName,
-            selectedProblems,
-            limitTime,
-            limitWarningCount,
-            startDateTime: new Date(startDateTime),
-            endDateTime: new Date(endDateTime),
-        };
-
-        if (selectedUserId === '') { // add
-            competitionInfo.dateTime = new Date();
-            competitionInfo.status = true;
-            firestore.collection('competitions').add(competitionInfo)
-                .then(() => {
-                    toast.success('Successfully Added!');
-                    onLoadCompetitionResults();
-                    onToggleDialog();
-                })
-                .catch(error => {
-                    toast.error(error.message);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-
-        } else { // update
-            firestore.collection('competitions')
-                .doc(selectedUserId)
-                .set({
-                    ...competitionInfo
-                }, {merge: true})
-                .then(() => {
-                    onLoadCompetitionResults();
-                    onToggleDialog();
-                })
-                .catch(error => {
-                    toast.error(error.message);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        }
-    };
-
-    const onRestartCompetition = (competition_id) => {
-        setRestartLoading(true);
-        firestore.collection('users')
-            .get()
-            .then(async usersRef => {
-                for (let i = 0; i < usersRef.docs.length; i++) {
-                    if (usersRef.docs[i].exists) {
-                        let user_id = usersRef.docs[i].id;
-                        let competition_path = `users/${user_id}/competitions`;
-
-                        await firestore.collection(competition_path)
-                            .doc(competition_id)
-                            .delete();
-                    }
+            for (let j = 0; j < tempCompetitions.length; j++) {
+                let tempCompetition = tempCompetitions[j];
+                if (tempCompetition.score) {
+                    continue;
                 }
 
-                toast.success('Restarted successfully!');
-                setOpenRestartDialog(false);
-            })
-            .catch(error => {
-                toast.error(error.message);
-            })
-            .finally(() => {
-                setRestartLoading(false);
-            })
-    };
+                let compResultInfo = getCompetitionResultInfo(tempCompetition.problems);
+                let correctCount = compResultInfo.correctCount;
+                let wrongCount = compResultInfo.wrongCount;
+                let unselectedCount = compResultInfo.unselectedCount;
 
-    const onChangeGrades = (val) => {
-        let index = grades.indexOf(val);
+                let totalScore = correctMark * correctCount + wrongMark * wrongCount + unselectedMark * unselectedCount;
 
-        if (index > -1) {
-            grades.splice(index, 1);
-            setGrades([...grades])
-        } else {
-            setGrades([...grades, val]);
-        }
-    };
 
-    const getConvertDateTimeFormat = (dateTime) => {
-        let initDateTime = new Date(dateTime.seconds * 1000).toLocaleString();
-        let tempArr = initDateTime.split(",");
+                // save to db
+                let path = `users/${tempRow.id}/competitions`;
 
-        if (tempArr.length < 2) {
-            return '';
-        }
-        let datePart = tempArr[0].trim();
-        let timePart = tempArr[1].trim();
+                await firestore.collection(path).doc(tempCompetition.competitionId)
+                    .set({
+                        score: totalScore
+                    }, {merge: true});
 
-        tempArr = datePart.split("/");
-        if (tempArr.length < 3) {
-            return '';
+                tempCompetition.score = totalScore;
+            }
         }
 
-        let month = parseInt(tempArr[0]);
-        if (month < 10) {
-            month = "0" + month;
-        }
-
-        let date = parseInt(tempArr[1]);
-        if (date < 10) {
-            date = "0" + date;
-        }
-
-        let year = parseInt(tempArr[2]);
-
-        let dateString = [year, month, date].join("-");
-
-        tempArr = timePart.split(" ");
-        if (tempArr.length < 2) {
-            return '';
-        }
-
-        let strTime = tempArr[0];
-        let ampm = tempArr[1];
-
-        tempArr = strTime.split(':');
-        if (tempArr.length < 3) {
-            return '';
-        }
-
-        let hour = parseInt(tempArr[0]);
-        if (ampm == 'PM') {
-            hour += 12;
-        }
-
-        if (hour < 10) {
-            hour = "0" + hour;
-        }
-
-        let minute = parseInt(tempArr[1]);
-        if (minute < 10) {
-            minute = "0" + minute;
-        }
-
-        let timeString = [hour, minute].join(":");
-
-        return [dateString, timeString].join("T");
+        setRows([
+            ...curRows
+        ]);
+        toast.success('Scored all successfully');
+        setOpenConfirmDialog(false);
+        setConfirmLoading(false);
     };
 
     const onMakeScoreRow = (row, compInfo, competitionResultInfo) => {
+        props.onLoading(true);
+
         let correctCount = competitionResultInfo.correctCount;
         let wrongCount = competitionResultInfo.wrongCount;
         let unselectedCount = competitionResultInfo.unselectedCount;
@@ -485,8 +309,6 @@ const CompetitionResults = (props) => {
 
         // save
         let path = `users/${row.id}/competitions`;
-
-        props.onLoading(true);
 
         firestore.collection(path).doc(compInfo.competitionId).set({
             score: totalScore
@@ -518,24 +340,9 @@ const CompetitionResults = (props) => {
             })
     };
 
-    const onAddCompetition = () => {
-        selectedUserId = '';
-
-        setGrades([]);
-        setCompetitionName('');
-        setSelectedProblems([]);
-        setLimitTime(initLimitTime);
-        setLimitWarningCount(initLimitWarningCount);
-        setStartDateTime('');
-        setEndDateTime('');
-
-        setModalTitle('Set Competition');
-        onToggleDialog();
-    };
-
     const onDeleteCompetition = async (user_id, competition_id) => {
+        setDeleteLoading(true);
 
-        props.onLoading(true);
         firestore.collection(`users/${user_id}/competitions`).doc(competition_id)
             .delete()
             .then(() => {
@@ -558,29 +365,9 @@ const CompetitionResults = (props) => {
             }).catch(error => {
             toast.error(error.message);
         }).finally(() => {
-            props.onLoading(false);
+            setDeleteLoading(false);
             setOpenDeleteDialog(false);
         });
-    };
-
-    const onSelectProblems = (selList, selItem) => {
-        setSelectedProblems([...selList]);
-    };
-
-    const onRemoveProblems = (selList, selItem) => {
-        setSelectedProblems([...selList]);
-    };
-
-    const ITEM_HEIGHT = 48;
-    const ITEM_PADDING_TOP = 8;
-
-    const MenuProps = {
-        PaperProps: {
-            style: {
-                maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-                width: 250,
-            },
-        },
     };
 
     const onChangeStatus = (event, row) => {
@@ -605,171 +392,14 @@ const CompetitionResults = (props) => {
         })
     };
 
-    const dialog = (<Dialog open={openDialog}
-                            fullWidth={true}
-                            maxWidth={'md'}
-                            classes={{
-                                paper: classes.dlgBlueBorder
-                            }}
-                            scroll="body"
-                            onClose={(event, reason) => {
-                                if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
-                                    return;
-                                }
-                                onToggleDialog()
-                            }}
-                            aria-labelledby="form-dialog-title">
-        <form onSubmit={onSaveCompetition} autoComplete="off">
-            <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>{modalTitle}</DialogTitle>
-            <DialogContent>
-                <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-10 col-sm-10 px-2'>
-                        <div className='row align-items-center'>
-                            <div className='col-lg-4 col-sm-12 text-left'>
-                                Select Grades
-                            </div>
-                            <div className='col-lg-8 col-sm-12 justify-content-around' style={{display: "flex"}}>
-                                {
-                                    [6, 7, 8, 9, 10].map((val, key) => {
-                                        return (
-                                            <div className='px-2' key={key} >
-                                                <BtnGrade number={val} onClick={() => {
-                                                    onChangeGrades(val);
-                                                }} selected={grades.includes(val)}/>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-10 col-sm-10 px-2'>
-                        <div className='row align-items-center'>
-                            <div className='col-lg-4 col-sm-12 text-left'>
-                                Select Competition Name
-                            </div>
-                            <div className='col-lg-8 col-sm-12 justify-content-around' style={{display: "flex"}}>
-                                {
-                                    ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
-                                        return (
-                                            <div className='px-2' key={key}>
-                                                <BtnCompetitionName name={val} onClick={() => {
-                                                    setCompetitionName(val);
-                                                    onLoadProblems(val);
-                                                    setSelectedProblems([]);
-                                                }} selected={val === competitionName}/>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {
-                    grades && competitionName ?
-                        <div className='row py-2 align-items-center justify-content-center'>
-                            <div className='col-lg-10 col-sm-10 px-2'>
-                                <label>Selected Problems({selectedProblems.length})</label>
-                            </div>
-                            <div className='col-lg-10 col-sm-10 px-2 problems-select-multi'>
-                                <Multiselect
-                                    options={problems}
-                                    selectedValues={selectedProblems}
-                                    onSelect={onSelectProblems}
-                                    onRemove={onRemoveProblems}
-                                    showArrow={true}
-                                    closeOnSelect={false}
-                                    displayValue='problemName'
-                                    placeholder={'Select Problems'}
-                                    showCheckbox={true}
-                                />
-                            </div>
-
-                        </div> : null
-                }
-                {
-                    grades && competitionName ?
-                        <div className='row py-2 align-items-center justify-content-center'>
-                            <div className='col-lg-5 col-sm-10 px-2'>
-                                <TextField
-                                    autoFocus
-                                    label="Limit Time"
-                                    type="number"
-                                    value={limitTime}
-                                    onChange={(e) => setLimitTime(e.target.value)}
-                                    fullWidth
-                                    required
-                                />
-                            </div>
-                            <div className='col-lg-5 col-sm-10 px-2'>
-                                <TextField
-                                    autoFocus
-                                    label="Limit Warning Count"
-                                    type="number"
-                                    value={limitWarningCount}
-                                    onChange={(e) => setLimitWarningCount(e.target.value)}
-                                    fullWidth
-                                    required
-                                />
-                            </div>
-                        </div> : null
-                }
-                {
-                    grades && competitionName ?
-                        <div className='row py-2 align-items-center justify-content-center'>
-                            <div className='col-lg-5 col-sm-10 px-2'>
-                                <TextField
-                                    autoFocus
-                                    label="Start Date-Time"
-                                    type='datetime-local'
-                                    value={startDateTime}
-                                    onChange={(e) => setStartDateTime(e.target.value)}
-                                    fullWidth
-                                    InputLabelProps={{
-                                        shrink: true
-                                    }}
-                                />
-                            </div>
-                            <div className='col-lg-5 col-sm-10 px-2'>
-                                <TextField
-                                    autoFocus
-                                    label="End Date-Time"
-                                    type="datetime-local"
-                                    value={endDateTime}
-                                    onChange={(e) => setEndDateTime(e.target.value)}
-                                    fullWidth
-                                    InputLabelProps={{
-                                        shrink: true
-                                    }}
-                                />
-                            </div>
-                        </div> : null
-                }
-                <div className='row' style={{height: 80}}>
-                </div>
-            </DialogContent>
-            <DialogActions className='justify-content-center py-3'>
-                <BtnDialogConfirm disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={onToggleDialog} title={'Cancel'}/>
-                <BtnDialogConfirm disabled={loading} type='submit' width={'100px'} title={'Save'}/>
-            </DialogActions>
-        </form>
-    </Dialog>);
-
     return (
         <div>
             <ToastContainer
                 position='top-center'
                 autoClose={2000}
                 traggle/>
-            {
-                dialog
-            }
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteCompetition(selectedUserId, selectedCompId)}/>
-            <DlgDeleteConfirm title="Do you really want to restart this competition?" open={openRestartDialog} disabled={restartLoading || selectedUserId === ''} onNo={() => {setOpenRestartDialog(false)}} onYes={() => onRestartCompetition(selectedUserId)}/>
+            <DlgDeleteConfirm title='Confirmation' content="Do you wish to distribute all calculated scores to participants?" open={openConfirmDialog} disabled={confirmLoading} onNo={() => {setOpenConfirmDialog(false)}} onYes={() => onMakeAllScores()}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
                 <div className='col-lg-12 col-sm-12'>
                     <h2 className='my-1'>User Competition Info</h2>
@@ -847,7 +477,7 @@ const CompetitionResults = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' onClick={() => onAddCompetition()} startIcon={<AddIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>Add</Button>
+                    <Button variant='contained' onClick={() => setOpenConfirmDialog(true)} startIcon={<BookmarksIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>All Scores</Button>
                 </div>
             </div>
             <div className='row'>
@@ -1021,89 +651,9 @@ const CompetitionResults = (props) => {
                                             } else {
                                                 return (
                                                     <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                                        {columns.map((column, columnKey) => {
-                                                            const value = row[column.id];
-                                                            if (column.id == 'grade') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`} align='center'>
-                                                                        <BtnGrade number={value} selected={true}/>
-                                                                    </TableCell>
-                                                                )
-                                                            } if (column.id == 'competitionName') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`} align='center'>
-                                                                        <BtnCompetitionName name={value} selected={true}/>
-                                                                    </TableCell>
-                                                                )
-                                                            } if (column.id == 'selectedProblems') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`}>
-                                                                        {value.map(item => (item.problemName)).join(', ')}
-                                                                    </TableCell>
-                                                                )
-                                                            } if (column.id == 'dateTime') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`}>
-                                                                        {new Date(value.seconds * 1000).toLocaleString()}
-                                                                    </TableCell>
-                                                                )
-                                                            } if (column.id == 'duration') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`}>
-                                                                        {new Date(row.startDateTime.seconds * 1000).toLocaleString() + ' ~ ' + new Date(row.endDateTime.seconds * 1000).toLocaleString()}
-                                                                    </TableCell>
-                                                                )
-                                                            } else if (column.id == 'status') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`}>
-                                                                        <FormControlLabel
-                                                                            control={
-                                                                                <Switch
-                                                                                    checked={value}
-                                                                                    onChange={(event) => onChangeStatus(event, row)}
-                                                                                    name="checkedB"
-                                                                                    color="primary"
-                                                                                />
-                                                                            }
-                                                                        />
-                                                                    </TableCell>
-                                                                )
-                                                            }
-                                                            else if (column.id == 'action') {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`} className='text-right'>
-                                                                        <IconButton color='primary'
-                                                                                    size='small'
-                                                                                    title="Edit Competition"
-                                                                                    onClick={() => onMakeScoreRow(row)}>
-                                                                            <EditIcon/>
-                                                                        </IconButton>
-                                                                        &nbsp;
-                                                                        <IconButton color='secondary'
-                                                                                    size='small'
-                                                                                    title="Delete Competition"
-                                                                                    onClick={() => {
-                                                                                        selectedUserId = row.id;
-                                                                                        setOpenDeleteDialog(true);
-
-                                                                                    }}>
-                                                                            <DeleteIcon/>
-                                                                        </IconButton>
-
-                                                                    </TableCell>
-                                                                )
-                                                            } else {
-                                                                return (
-                                                                    <TableCell key={`body_${columnKey}`} align={column.align}>
-                                                                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                                    </TableCell>
-                                                                );
-                                                            }
-                                                        })}
                                                     </TableRow>
                                                 )
                                             }
-
                                         })}
                                 {
                                     rows != null && rows.length < 1 ? (

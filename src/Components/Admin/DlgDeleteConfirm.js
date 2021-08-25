@@ -1,7 +1,5 @@
 import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions";
 import React from "react";
 import {makeStyles} from "@material-ui/core";
@@ -36,11 +34,9 @@ const DlgDeleteConfirm = (props) => {
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title" className='text-center' style={{color: COLOR_DLG_TITLE}}>{props.title}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                    {props.content}
-                </DialogContentText>
+                <h2 id="alert-dialog-title" className='text-center' style={{color: COLOR_DLG_TITLE, fontSize: '30px', fontWeight: 'bolder'}}>{props.title}</h2>
+                <h5 className='text-center py-4'>{props.content}</h5>
             </DialogContent>
             <DialogActions className='justify-content-center'>
                 <BtnDialogConfirm onClick={props.onNo} disabled={props.disabled} title='No' backgroundColor={props.disabled ? '#ddd' : COLOR_CANCEL_BUTTON}/>
