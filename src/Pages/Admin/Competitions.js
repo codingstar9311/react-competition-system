@@ -278,10 +278,10 @@ const Competitions = (props) => {
             limitWarningCount,
             startDateTime: new Date(startDateTime),
             endDateTime: new Date(endDateTime),
-            dateTime: new Date()
         };
 
         if (selectedId === '') { // add
+            competitionInfo.dateTime = new Date();
             competitionInfo.status = true;
             firestore.collection('competitions').add(competitionInfo)
                 .then(() => {
