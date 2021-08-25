@@ -30,6 +30,7 @@ import DialogContent from "@material-ui/core/DialogContent/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions/DialogActions";
 import Dialog from "@material-ui/core/Dialog/Dialog";
 import Paper from "@material-ui/core/Paper";
+import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 
 let selectedId = '';
 
@@ -70,12 +71,13 @@ const Dashboard = (props) => {
     const scoredCompColumns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
+        { id: 'problemCount', label: 'Problem Count', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
         { id: 'startedAt', label: 'Competition Time', minWidth: 170 },
         { id: 'score', label: 'Score', width: 100},
-        { id: 'action', label: 'Action', width: 170}
+        { id: 'action', label: 'Action', width: 200}
     ];
 
     const [waitingSetting, setWaitingSetting] = useState({
@@ -88,6 +90,7 @@ const Dashboard = (props) => {
     const waitingCompColumns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
+        { id: 'problemCount', label: 'Problem Count', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
         { id: 'warningCount', label: 'Warning Count', width: 150 },
@@ -105,6 +108,7 @@ const Dashboard = (props) => {
     const availableCompColumns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
+        { id: 'problemCount', label: 'Problem Count', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 150 },
         { id: 'startDateTime', label: 'Start Date-Time'},
@@ -384,6 +388,12 @@ const Dashboard = (props) => {
                                                                             <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
+                                                                } else if (column.id == 'problemCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <BtnCompetitionNumberSelect number={row.problems.length} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
                                                                 } else if (column.id == 'startedAt') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
@@ -494,6 +504,12 @@ const Dashboard = (props) => {
                                                                             <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
+                                                                } else if (column.id == 'problemCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <BtnCompetitionNumberSelect number={row.problems.length} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
                                                                 } else if (column.id == 'startedAt') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
@@ -594,6 +610,12 @@ const Dashboard = (props) => {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
                                                                             <BtnCompetitionName name={value} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'problemCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align='center'>
+                                                                            <BtnCompetitionNumberSelect number={row.selectedProblems.length} selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 } else if (column.id == 'dateTime') {
