@@ -24,7 +24,7 @@ const BtnCompetitionName = (props) => {
     const classes = useStyles();
     return (
         <Button className={classes.root} onClick={props.onClick}
-                style={{backgroundColor: props.selected ? COLOR_USER_SELECTED_BUTTON : '#fff', color: props.selected ? '#fff' : COLOR_USER_SELECTED_BUTTON}}>
+                style={{backgroundColor: props.selected ? COLOR_USER_SELECTED_BUTTON : '#fff', color: props.selected ? '#fff' : COLOR_USER_SELECTED_BUTTON, margin: 'auto'}}>
             {props.name} {props.score}
         </Button>
     )

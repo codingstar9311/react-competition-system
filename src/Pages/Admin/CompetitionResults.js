@@ -30,6 +30,7 @@ import {Multiselect} from "multiselect-react-dropdown";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
+import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 
 const initLimitWarningCount = 15;
 const initLimitTime = 20;
@@ -59,10 +60,10 @@ const CompetitionResults = (props) => {
         { id: 'fullName', label: 'Name'},
         { id: 'grade', label: 'Grade', width: 80 },
         { id: 'competitionName', label: 'Competition Name', width: 100 },
-        { id: 'score', label: 'Score', width: 100 },
+        { id: 'score', label: 'Score'},
         { id: 'limitWarningCount', label: 'Limit Warning Count', width: 100 },
         { id: 'warningCount', label: 'Warning Count', width: 100 },
-        { id: 'startedAt', label: 'Competition Name', minWidth: 250 },
+        { id: 'startedAt', label: 'Competition Time', minWidth: 250 },
         { id: 'action', label: 'Action', width: 140, textCenter: 'center' }
     ];
 
@@ -172,60 +173,91 @@ const CompetitionResults = (props) => {
 
     const onLoadCompetitionResults = () => {
         props.onLoading(true);
-        firestore.collection('competitions').orderBy('dateTime', 'desc')
+        firestore.collection('users').orderBy('fullName', 'desc')
             .get()
-            .then(competitionRef => {
-                let tempUserCompetions = [];
+            .then(async usersRef => {
+                props.onLoading(true);
+                let tempUserCompetitions = [];
                 let no = 1;
 
-                competitionRef.docs.forEach(item => {
+                for (let i = 0; i < usersRef.docs.length; i++) {
+                    let item = usersRef.docs[i];
                     if (item.exists) {
                         let data = item.data();
 
-                        let tempGrades = data.grades ? data.grades : [];
-                        let tempCompetition = data.competitionName ? data.competitionName : '';
-                        let tempStartDate = data.startDateTime ? data.startDateTime.toString() : '';
-                        let tempEndDate = data.endDate ? data.endDate.toString() : '';
-                        let tempLimitTime = data.limitTime ? data.limitTime.toString() : '';
-                        let tempLimitWarningCount = data.limitWarningCount ? data.limitWarningCount.toString() : '';
+                        if (!data.status || data.type != 'user') {
+                            continue;
+                        }
 
-                        if (filterGrades.length > 0) {
-                            let bFind = false;
-                            for (let i = 0; i < filterGrades.length; i++) {
-                                if (data.grades.includes(filterGrades[i])) {
-                                    bFind = true;
-                                    break;
+
+                        let tempGrade = data.grade ? parseInt(data.grade) : '';
+                        let tempFullName = data.fullName ? data.fullName : '';
+
+                        if (filterGrades.length > 0 && !filterGrades.includes(tempGrade)) {
+                            continue;
+                        }
+
+                        let bFind = true;
+                        if (searchText != '') {
+                            if (!tempGrade.toString().includes(searchText) && !tempFullName.includes(searchText)) {
+                                bFind = false;
+                            }
+                        }
+
+                        let tempUserInfo = {
+                            id: item.id,
+                            fullName: tempFullName,
+                            grade: tempGrade,
+                            competitions: []
+                        };
+
+                        // find competitions
+                        let competition_path = `users/${item.id}/competitions`;
+
+                        let tempCompetitions = await firestore.collection(competition_path)
+                            .get();
+
+                        tempCompetitions.docs.forEach(compItem => {
+                            if (!compItem.exists) {
+                                return;
+                            }
+
+                            let tempData = compItem.data();
+
+                            let curDateTime = new Date().getTime();
+                            let tempEndTime = new Date(tempData.endTime.seconds * 1000).getTime();
+
+                            if (filterCompNames.length > 0 && !filterCompNames.includes(tempData.competitionName)) {
+                                return;
+                            }
+
+                            if (searchText != '' && bFind == false) {
+                                if (!tempData.competitionName.includes(searchText) && !'Awaiting Score'.includes(searchText)
+                                    && !tempData.limitWarningCount.toString().includes(searchText)) {
+                                    return;
                                 }
                             }
-                            if (bFind == false) {
-                                return;
-                            }
-                        }
 
-                        if (filterCompNames.length > 0) {
-                            if (!filterCompNames.includes(tempCompetition)) {
-                                return;
+                            if (curDateTime > tempEndTime || tempData.submitted) {
+                                tempUserInfo.competitions.push({
+                                    ...tempData
+                                })
                             }
-                        }
-
-                        if (searchText !== '') {
-                            if (!tempGrades.includes(searchText) && !tempCompetition.includes(searchText)
-                                && !tempLimitTime.includes(searchText) && !tempLimitWarningCount.includes(searchText)
-                                && !tempStartDate.includes(searchText) && !tempEndDate.includes(searchText)) {
-                                return;
-                            }
-                        }
-
-                        tempUserCompetions.push({
-                            no,
-                            id: item.id,
-                            ...data
                         });
-                        no ++;
-                    }
-                });
 
-                setRows([...tempUserCompetions]);
+                        if (tempUserInfo.competitions.length > 0) {
+                            tempUserInfo.no = no;
+                            tempUserCompetitions.push(tempUserInfo);
+                            no ++;
+                        }
+                    }
+                }
+
+
+                setRows([...tempUserCompetitions]);
+                console.log(tempUserCompetitions);
+                props.onLoading(false);
+
                 setPage(0);
             })
             .catch(error => {
@@ -772,18 +804,23 @@ const CompetitionResults = (props) => {
                                             key={key}
                                             align={column.align}
                                             style={{ maxWidth: column.maxWidth, width: column.width}}
-                                            className={column.id === 'action' || column.id === 'grades' ? 'text-center' : ''}
+                                            className={['action', 'score', 'grade'].includes(column.id) ? 'text-center' : ''}
                                         >
-                                            <TableSortLabel active={orderBy === column.id}
-                                                            direction={orderBy == column.id ? order : 'asc'}
-                                                            onClick={() => {
-                                                                const isAsc = orderBy === column.id && order === 'asc';
-                                                                setOrder(isAsc ? 'desc' : 'asc');
-                                                                setOrderBy(column.id);
-                                                            }}
-                                            >
-                                                {column.label}
-                                            </TableSortLabel>
+                                            {
+                                                ['no', 'fullName', 'grade'].includes(column.id) ?
+                                                    <TableSortLabel active={orderBy === column.id}
+                                                                    direction={orderBy == column.id ? order : 'asc'}
+                                                                    onClick={() => {
+                                                                        const isAsc = orderBy === column.id && order === 'asc';
+                                                                        setOrder(isAsc ? 'desc' : 'asc');
+                                                                        setOrderBy(column.id);
+                                                                    }}
+                                                    >
+                                                        {column.label}
+                                                    </TableSortLabel>
+                                                    :
+                                                    column.label
+                                            }
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -793,109 +830,197 @@ const CompetitionResults = (props) => {
                                     rows != null && stableSort(rows, getComparator(order, orderBy))
                                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                         .map((row, key) => {
-                                            return (
-                                                <TableRow hover role="checkbox" tabIndex={-1} key={key}>
-                                                    {columns.map((column, subKey) => {
-                                                        const value = row[column.id];
-                                                        if (column.id == 'grades') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <div style={{display: 'inline-flex', justifyContent: 'center'}} >
-                                                                        {
-                                                                            value.map((gradeVal, gradekey) => {
-                                                                                return (
-                                                                                    <div key={gradekey} style={{padding: '4px'}}>
-                                                                                        <BtnGrade number={gradeVal} selected={true}/>
-                                                                                    </div>
-                                                                                )
-                                                                            })
-                                                                        }
-                                                                    </div>
-                                                                </TableCell>
-                                                            )
-                                                        } if (column.id == 'competitionName') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align='center'>
-                                                                    <BtnCompetitionName name={value} selected={true}/>
-                                                                </TableCell>
-                                                            )
-                                                        } if (column.id == 'selectedProblems') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    {value.map(item => (item.problemName)).join(', ')}
-                                                                </TableCell>
-                                                            )
-                                                        } if (column.id == 'dateTime') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    {new Date(value.seconds * 1000).toLocaleString()}
-                                                                </TableCell>
-                                                            )
-                                                        } if (column.id == 'duration') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    {new Date(row.startDateTime.seconds * 1000).toLocaleString() + ' ~ ' + new Date(row.endDateTime.seconds * 1000).toLocaleString()}
-                                                                </TableCell>
-                                                            )
-                                                        } else if (column.id == 'status') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`}>
-                                                                    <FormControlLabel
-                                                                        control={
-                                                                            <Switch
-                                                                                checked={value}
-                                                                                onChange={(event) => onChangeStatus(event, row)}
-                                                                                name="checkedB"
-                                                                                color="primary"
-                                                                            />
-                                                                        }
-                                                                    />
-                                                                </TableCell>
-                                                            )
-                                                        }
-                                                        else if (column.id == 'action') {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} className='text-right'>
-                                                                    <IconButton color='secondary'
-                                                                                size='small'
-                                                                                title="Restart this competition"
-                                                                                onClick={() => {
-                                                                                    selectedId = row.id;
-                                                                                    setOpenRestartDialog(true);
-                                                                                }}>
-                                                                        <ReplayIcon/>
-                                                                    </IconButton>
-                                                                    &nbsp;&nbsp;
-                                                                    <IconButton color='primary'
-                                                                                size='small'
-                                                                                title="Edit Competition"
-                                                                                onClick={() => onEditCompetition(row)}>
-                                                                        <EditIcon/>
-                                                                    </IconButton>
-                                                                    &nbsp;
-                                                                    <IconButton color='secondary'
-                                                                                size='small'
-                                                                                title="Delete Competition"
-                                                                                onClick={() => {
-                                                                                    selectedId = row.id;
-                                                                                    setOpenDeleteDialog(true);
+                                            let competitions = row.competitions;
 
-                                                                                }}>
-                                                                        <DeleteIcon/>
-                                                                    </IconButton>
+                                            if (competitions.length > 0) {
+                                                return competitions.map((compInfo, competitionKey) => {
+                                                    return (
+                                                        <TableRow hover role="checkbox" tabIndex={-1} key={key + '_' + competitionKey}>
+                                                            {columns.map((column, columnKey) => {
+                                                                const value = row[column.id];
 
-                                                                </TableCell>
-                                                            )
-                                                        } else {
-                                                            return (
-                                                                <TableCell key={`body_${subKey}`} align={column.align}>
-                                                                    {column.format && typeof value === 'number' ? column.format(value) : value}
-                                                                </TableCell>
-                                                            );
-                                                        }
-                                                    })}
-                                                </TableRow>
-                                            );
+                                                                if (column.id == 'no') {
+                                                                    return (
+                                                                        competitionKey === 0 ?
+                                                                            <TableCell key={`body_${columnKey}`}
+                                                                                       rowSpan={competitions.length}>
+                                                                                {value}
+                                                                            </TableCell> : null
+                                                                    )
+                                                                } else if (column.id == 'fullName') {
+                                                                    return (
+                                                                        competitionKey === 0 ?
+                                                                            <TableCell key={`body_${columnKey}`}
+                                                                                       rowSpan={competitions.length}>
+                                                                                {value}
+                                                                            </TableCell> : null
+                                                                    )
+                                                                } else if (column.id == 'grade') {
+                                                                    return (
+                                                                        competitionKey === 0 ?
+                                                                            <TableCell key={`body_${columnKey}`}
+                                                                                       align='center'
+                                                                                       rowSpan={competitions.length}>
+                                                                                <BtnGrade number={value}
+                                                                                          selected={true}/>
+                                                                            </TableCell> : null
+                                                                    )
+                                                                } else if (column.id == 'competitionName') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align='center'>
+                                                                            <BtnCompetitionName name={compInfo.competitionName} selected={true}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'score') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`}
+                                                                            align='center'
+                                                                        >
+                                                                            <div>
+                                                                                <BtnCompetitionName name={compInfo.score ? compInfo.score : 'Awaiting Score'} selected={true}/>
+                                                                            </div>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'limitWarningCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`}>
+                                                                            <BtnGrade number={compInfo.limitWarningCount}/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'warningCount') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`}>
+                                                                            <BtnCompetitionNumberSelect number={compInfo.warningCount} status='done'/>
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'startedAt') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`}>
+                                                                            {
+                                                                                new Date(compInfo.startedAt.seconds * 1000).toLocaleString()
+                                                                            }
+                                                                        </TableCell>
+                                                                    )
+                                                                } else if (column.id == 'action') {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} className='text-right'>
+                                                                            <IconButton color='primary'
+                                                                                        size='small'
+                                                                                        title="Edit Competition"
+                                                                                        onClick={() => onEditCompetition(row)}>
+                                                                                <EditIcon/>
+                                                                            </IconButton>
+                                                                            &nbsp;
+                                                                            <IconButton color='secondary'
+                                                                                        size='small'
+                                                                                        title="Delete Competition"
+                                                                                        onClick={() => {
+                                                                                            selectedId = row.id;
+                                                                                            setOpenDeleteDialog(true);
+
+                                                                                        }}>
+                                                                                <DeleteIcon/>
+                                                                            </IconButton>
+
+                                                                        </TableCell>
+                                                                    )
+                                                                } else {
+                                                                    return (
+                                                                        <TableCell key={`body_${columnKey}`} align={column.align}>
+                                                                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                        </TableCell>
+                                                                    );
+                                                                }
+                                                            })}
+                                                        </TableRow>
+                                                    )
+                                                });
+                                            } else {
+                                                return (
+                                                    <TableRow hover role="checkbox" tabIndex={-1} key={key}>
+                                                        {columns.map((column, columnKey) => {
+                                                            const value = row[column.id];
+                                                            if (column.id == 'grade') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`} align='center'>
+                                                                        <BtnGrade number={value} selected={true}/>
+                                                                    </TableCell>
+                                                                )
+                                                            } if (column.id == 'competitionName') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`} align='center'>
+                                                                        <BtnCompetitionName name={value} selected={true}/>
+                                                                    </TableCell>
+                                                                )
+                                                            } if (column.id == 'selectedProblems') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`}>
+                                                                        {value.map(item => (item.problemName)).join(', ')}
+                                                                    </TableCell>
+                                                                )
+                                                            } if (column.id == 'dateTime') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`}>
+                                                                        {new Date(value.seconds * 1000).toLocaleString()}
+                                                                    </TableCell>
+                                                                )
+                                                            } if (column.id == 'duration') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`}>
+                                                                        {new Date(row.startDateTime.seconds * 1000).toLocaleString() + ' ~ ' + new Date(row.endDateTime.seconds * 1000).toLocaleString()}
+                                                                    </TableCell>
+                                                                )
+                                                            } else if (column.id == 'status') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`}>
+                                                                        <FormControlLabel
+                                                                            control={
+                                                                                <Switch
+                                                                                    checked={value}
+                                                                                    onChange={(event) => onChangeStatus(event, row)}
+                                                                                    name="checkedB"
+                                                                                    color="primary"
+                                                                                />
+                                                                            }
+                                                                        />
+                                                                    </TableCell>
+                                                                )
+                                                            }
+                                                            else if (column.id == 'action') {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`} className='text-right'>
+                                                                        <IconButton color='primary'
+                                                                                    size='small'
+                                                                                    title="Edit Competition"
+                                                                                    onClick={() => onEditCompetition(row)}>
+                                                                            <EditIcon/>
+                                                                        </IconButton>
+                                                                        &nbsp;
+                                                                        <IconButton color='secondary'
+                                                                                    size='small'
+                                                                                    title="Delete Competition"
+                                                                                    onClick={() => {
+                                                                                        selectedId = row.id;
+                                                                                        setOpenDeleteDialog(true);
+
+                                                                                    }}>
+                                                                            <DeleteIcon/>
+                                                                        </IconButton>
+
+                                                                    </TableCell>
+                                                                )
+                                                            } else {
+                                                                return (
+                                                                    <TableCell key={`body_${columnKey}`} align={column.align}>
+                                                                        {column.format && typeof value === 'number' ? column.format(value) : value}
+                                                                    </TableCell>
+                                                                );
+                                                            }
+                                                        })}
+                                                    </TableRow>
+                                                )
+                                            }
+
                                         })}
                                 {
                                     rows != null && rows.length < 1 ? (

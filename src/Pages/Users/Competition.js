@@ -432,7 +432,6 @@ const Competition = (props) => {
         <>
             {
                 currentCompetition == null ? <div className='text-center' style={{paddingTop: '200px'}}>
-                        <CircularProgress/>
                     </div>
                 :
                 <div className={classes.root}>
