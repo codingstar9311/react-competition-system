@@ -17,17 +17,25 @@ import TableSortLabel from "@material-ui/core/TableSortLabel";
 import BtnGrade from "../../Components/Common/BtnGrade";
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
+import {PictureAsPdf as PdfIcon} from '@material-ui/icons';
 import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
+import {PDFDownloadLink}  from "@react-pdf/renderer";
+
 import {
+    COLOR_ADMIN_MAIN,
     COLOR_DLG_BORDER_BLUE,
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
-import {ExitToApp} from "@material-ui/icons";
+import {AddCircle as AddIcon, ExitToApp} from "@material-ui/icons";
 import Paper from "@material-ui/core/Paper";
 import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
+import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
+import CompetitionPdf from "../../Components/User/CompetitionPdf";
 
 let selectedCompId = '';
-
+let selectedGrade = '';
+let selectedCompName = '';
+let selectedUserId = '';
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
@@ -55,7 +63,9 @@ const ViewList = (props) => {
 
     const [userCompetitionList, setUserCompetitionList] = useState([]);
 
-    const [showStartConfirmDlg, setShowStartConfirmDlg] = useState(false);
+    const [openConfirmDlg, setOpenConfirmDlg] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+
     const [scoredSetting, setScoredSetting] = useState({
         page: 0,
         rowsPerPage: 100,
@@ -63,13 +73,15 @@ const ViewList = (props) => {
         orderBy: 'desc'
     });
 
+    const ref = React.createRef();
+
     const classes = useStyles();
 
     const location = useLocation();
 
     const scoredCompColumns = [
-        { id: 'no', label: 'No', width: 60 },
-        { id: 'fullName', label: 'Name'},
+        { id: 'no', label: 'Rank', width: 60 },
+        { id: 'fullName', label: 'Name', width: 120},
         { id: 'grade', label: 'Grade'},
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'problemCount', label: 'Problem Count', width: 100 },
@@ -94,8 +106,8 @@ const ViewList = (props) => {
     const onLoadUserCompetitions = () => {
 
         props.onLoading(true);
-        let grade = props.user.grade;
-        let user_id = props.user.id;
+        selectedGrade = props.user.grade;
+        selectedUserId = props.user.id;
 
         firestore.collection('users').get()
             .then(async usersRef => {
@@ -166,12 +178,23 @@ const ViewList = (props) => {
         props.history.push('/user/dashboard');
     };
 
+    const onExportToPdf = () => {
+
+    };
+
+    const options = {
+        orientation: 'A4',
+        unit: 'cm',
+        format: [21,29.7]
+    };
+
     return (
         <div>
             <ToastContainer
                 position='top-center'
                 autoClose={2000}
                 traggle/>
+            <DlgDeleteConfirm title='Confirmation' content="Do you wish to export as PDF?" open={openConfirmDlg} disabled={confirmLoading} onNo={() => {setOpenConfirmDlg(false)}} onYes={() => onExportToPdf()}/>
 
             <div className={'row py-2'}>
                 <div className='col-4'>
@@ -184,18 +207,31 @@ const ViewList = (props) => {
                 </div>
             </div>
 
-            {/*    get scored table */}
+            <div className='row' style={{paddingTop: '40px'}}>
+                <div className='col-lg-2 col-sm-12'>
+                </div>
+                <div className='col-lg-8 col-sm-12 text-center'>
+                    <h3 style={{color: COLOR_DLG_TITLE}}>Scored Competition List</h3>
+                </div>
+                <div className='col-lg-2 col-sm-12'>
+                    <PDFDownloadLink
+                        document={<CompetitionPdf data={userCompetitionList} />}
+                        fileName={selectedGrade + "-" + 'competition_result.pdf'}
+                        style={{
+                            textDecoration: "none",
+                            padding: "10px",
+                            color: "#4a4a4a",
+                            backgroundColor: COLOR_ADMIN_MAIN,
+                            borderRadius: '15px'
+                        }}>
+                        <PdfIcon/>
+                        Download pdf
+                    </PDFDownloadLink>
+                </div>
+            </div>
             {
                 props.user && props.user.status ?
-                    <div className='row' style={{paddingTop: '40px'}}>
-                        <div className='col-lg-12 col-sm-12 text-center'>
-                            <h3 style={{color: COLOR_DLG_TITLE}}>Scored Competition List</h3>
-                        </div>
-                    </div> : null
-            }
-            {
-                props.user && props.user.status ?
-                    <div className='row'>
+                    <div className='row' ref={ref}>
                         <div className='col-12'>
                             <TableContainer style={{maxHeight: '400px', overflow: 'auto'}} component={Paper}>
                                 <Table stickyHeader aria-label="sticky table">

@@ -527,7 +527,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'score') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} className='text-center'>
-                                                                            <BtnCompetitionName name='Awaiting Score' selected={true}/>
+                                                                            <BtnCompetitionName name='Awaiting' selected={true}/>
                                                                         </TableCell>
                                                                     )
                                                                 }

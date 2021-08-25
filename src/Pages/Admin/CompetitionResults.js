@@ -211,7 +211,7 @@ const CompetitionResults = (props) => {
                             }
 
                             if (searchText != '' && bFind == false) {
-                                if (!tempData.competitionName.includes(searchText) && !'Awaiting Score'.includes(searchText)
+                                if (!tempData.competitionName.includes(searchText) && !'Awaiting'.includes(searchText)
                                     && !tempData.limitWarningCount.toString().includes(searchText)) {
                                     return;
                                 }
@@ -567,7 +567,7 @@ const CompetitionResults = (props) => {
                                                                             align='center'
                                                                         >
                                                                             <div>
-                                                                                <BtnCompetitionName name={compInfo.score ? compInfo.score : 'Awaiting Score'} selected={true}/>
+                                                                                <BtnCompetitionName name={compInfo.score ? compInfo.score : 'Awaiting'} selected={true}/>
                                                                             </div>
                                                                         </TableCell>
                                                                     )
