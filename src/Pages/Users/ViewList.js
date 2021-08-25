@@ -11,7 +11,6 @@ import {
     TableCell,
     TableContainer,
     TableHead,
-    TablePagination,
     TableRow
 } from "@material-ui/core";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
@@ -20,16 +19,10 @@ import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import {
-    COLOR_CANCEL_BUTTON,
-    COLOR_DLG_BORDER_BLACK,
     COLOR_DLG_BORDER_BLUE,
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
 import {ExitToApp} from "@material-ui/icons";
-import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions/DialogActions";
-import Dialog from "@material-ui/core/Dialog/Dialog";
 import Paper from "@material-ui/core/Paper";
 import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 
@@ -60,13 +53,13 @@ const useStyles = makeStyles((theme) => ({
 
 const ViewList = (props) => {
 
-    const [scoredCompList, setScoredCompList] = useState([]);
+    const [userCompetitionList, setUserCompetitionList] = useState([]);
 
     const [showStartConfirmDlg, setShowStartConfirmDlg] = useState(false);
     const [scoredSetting, setScoredSetting] = useState({
         page: 0,
-        rowsPerPage: 10,
-        order: 'dateTime',
+        rowsPerPage: 100,
+        order: 'score',
         orderBy: 'desc'
     });
 
@@ -76,6 +69,8 @@ const ViewList = (props) => {
 
     const scoredCompColumns = [
         { id: 'no', label: 'No', width: 60 },
+        { id: 'fullName', label: 'Name'},
+        { id: 'grade', label: 'Grade'},
         { id: 'competitionName', label: 'Competition Name', width: 100 },
         { id: 'problemCount', label: 'Problem Count', width: 100 },
         { id: 'limitTime', label: 'Limit Time(min)', width: 100 },
@@ -85,39 +80,65 @@ const ViewList = (props) => {
         { id: 'score', label: 'Score', width: 100}
     ];
 
+    const compareScore = (a, b) => {
+        if (a.score < b.score) {
+            return 1;
+        }
+        if (a.score > b.score) {
+            return -1;
+        }
+
+        return 0;
+    };
+
     const onLoadUserCompetitions = () => {
 
         props.onLoading(true);
         let grade = props.user.grade;
         let user_id = props.user.id;
 
-        let path = `users/${user_id}/competitions`;
+        firestore.collection('users').get()
+            .then(async usersRef => {
+                props.onLoading(true);
+                let tempUserCompList = [];
+                for (let i = 0; i < usersRef.docs.length; i++) {
+                    let userInfo = usersRef.docs[i];
+                    if (!userInfo.exists) {
+                        continue;
+                    }
 
-        // get available list
-        firestore.collection(path).where('grades', 'array-contains', parseInt(grade))
-            .get()
-            .then(competitionRef => {
-                let tempScoredCompetitions = [];
+                    let tempData = userInfo.data();
+                    let tempUserId = userInfo.id;
 
-                let noScored = 1;
-                competitionRef.docs.forEach(item => {
-                    if (item.exists) {
-                        let data = item.data();
+                    let compInfo = await firestore.collection(`users/${tempUserId}/competitions`)
+                        .doc(selectedCompId)
+                        .get();
 
-                        if (data.score) {
-                            // put to score
-                            tempScoredCompetitions.push({
-                                no: noScored,
-                                id: item.id,
-                                ...data
-                            });
-                            noScored ++;
+                    if (!compInfo.exists) {
+                        continue;
+                    }
 
-                        }
+                    let compData = compInfo.data();
+
+                    tempUserCompList.push({
+                        id: tempUserId,
+                        fullName: tempData.fullName,
+                        grade: tempData.grade,
+                        ...compData
+                    });
+
+                    tempUserCompList.sort(compareScore);
+                }
+                // make no
+                tempUserCompList = tempUserCompList.map((item, key) => {
+                    return {
+                        ...item,
+                        no: key + 1
                     }
                 });
+                setUserCompetitionList([...tempUserCompList]);
 
-                setScoredCompList([...tempScoredCompetitions]);
+                props.onLoading(false);
             })
             .catch(error => {
                 toast.error(error.message);
@@ -206,14 +227,20 @@ const ViewList = (props) => {
                                     </TableHead>
                                     <TableBody>
                                         {
-                                            stableSort(scoredCompList, getComparator(scoredSetting.order, scoredSetting.orderBy))
+                                            stableSort(userCompetitionList, getComparator(scoredSetting.order, scoredSetting.orderBy))
                                                 .slice(scoredSetting.page * scoredSetting.rowsPerPage, scoredSetting.page * scoredSetting.rowsPerPage + scoredSetting.rowsPerPage)
                                                 .map((row, key) => {
                                                     return (
                                                         <TableRow hover role="checkbox" tabIndex={-1} key={key}>
                                                             {scoredCompColumns.map((column, subKey) => {
                                                                 const value = row[column.id];
-                                                                if (column.id == 'grade') {
+                                                                if (column.id == 'fullName') {
+                                                                    return (
+                                                                        <TableCell key={`body_${subKey}`} align={column.align}>
+                                                                            <span style={{color: row.id == props.user.id ? 'red' : '', }}>{value}</span>
+                                                                        </TableCell>
+                                                                    )
+                                                                } if (column.id == 'grade') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
                                                                             <BtnGrade number={value} selected={true}/>
@@ -243,14 +270,6 @@ const ViewList = (props) => {
                                                                             <BtnCompetitionName name={value} selected={true}/>
                                                                         </TableCell>
                                                                     )
-                                                                } else if (column.id == 'action') {
-                                                                    return (
-                                                                        <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='View List' onClick={() => {
-                                                                                alert('view detail List' + row.id)
-                                                                            }}/>
-                                                                        </TableCell>
-                                                                    )
                                                                 }
                                                                 else {
                                                                     return (
@@ -264,7 +283,7 @@ const ViewList = (props) => {
                                                     );
                                                 })}
                                         {
-                                            scoredCompList != null && scoredCompList.length < 1 ? (
+                                            userCompetitionList != null && userCompetitionList.length < 1 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={15} align="center">
                                                         There is no data....
