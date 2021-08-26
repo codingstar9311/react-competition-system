@@ -68,3 +68,7 @@ body {
 .latex-content span {
   font-size: 20px !important;
 }
+
+.latex-content-2 span {
+  font-size: 14px !important;
+}

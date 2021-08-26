@@ -48,7 +48,13 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const initAnswers = ['A', 'B', 'C', 'D', 'E'];
+const initAnswers = [
+    { key: 'A', value: ''},
+    { key: 'B', value: ''},
+    { key: 'C', value: ''},
+    { key: 'D', value: ''},
+    { key: 'E', value: ''}
+];
 
 const Problems = (props) => {
 
@@ -193,11 +199,10 @@ const Problems = (props) => {
             return;
         }
 
-        if (correctAnswer == undefined || correctAnswer == '') {
+        if (correctAnswer == null) {
             toast.warning('Please select correct answer!');
             return;
         }
-
 
         setLoading(true);
 
@@ -236,7 +241,7 @@ const Problems = (props) => {
                     let curRows = rows;
                     curRows = curRows.map((item, index) => {
                         if (item.id == selectedId) {
-                            item = {id: selectedId, no: (index + 1),  ...problemInfo};
+                            item = {...problemInfo, dateTime: item.dateTime, id: selectedId, no: (index + 1)};
                         }
 
                         return item;
@@ -306,7 +311,7 @@ const Problems = (props) => {
         });
     };
 
-    const onChangeCorrectAnswer = (event) => {
+    const onSelectCorrectAnswer = (event) => {
         setCorrectAnswer(event.target.value);
     };
 
@@ -329,10 +334,13 @@ const Problems = (props) => {
         setCorrectAnswer('');
     };
 
-    const onChangeAnswer = (val, key) => {
-        let items = [...answers];
-        items[key] = val;
-        setAnswers(items);
+    const onChangeAnswerKey = (key, answer) => {
+        answer.key = key;
+        setAnswers([...answers]);
+    };
+    const onChangeAnswerValue = (value, answer) => {
+        answer.value = value;
+        setAnswers([...answers]);
     };
 
     const dialog = (<Dialog open={openDialog}
@@ -397,14 +405,13 @@ const Problems = (props) => {
                     <div className='col-10'>
                         <textarea
                             required={true}
-                            onChange={(e) => setQuestion(e.target.value)} style={{width: '100%', resize: 'none', minHeight: '200px', maxHeight: '300px', overflow: 'auto'}}>
-                            {question}
-                        </textarea>
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)} style={{width: '100%', resize: 'none', minHeight: '200px', maxHeight: '300px', overflow: 'auto'}}/>
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-10' style={{paddingBottom: '10px'}}>
-                        Preview
+                        Question Preview
                     </div>
                     <div className='col-10'>
                         <pre className='latex-content' style={{minHeight: '100px', maxHeight: '400px', border: 'solid 2px #6f6f6f', padding: 4}}>
@@ -412,68 +419,104 @@ const Problems = (props) => {
                         </pre>
                     </div>
                 </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-10' style={{paddingBottom: '10px'}}>
+                        Answer Preview
+                    </div>
+                    <div className='col-10'>
+                        <div style={{ border: 'solid 2px #6f6f6f', display: 'flex', flexWrap: 'warp', padding: '10px'}}
+                             className='row mx-0'>
+                            {
+                                answers.map((ans, key) => {
+                                    return (
+                                        <div key={key} className='col-lg-2 py-2 col-sm-6'>
+                                            <Latex>{ans.key ? ans.key + ') ' + ans.value : ''}</Latex>
+                                        </div>
+                                        )
+                                })
+                            }
+                        </div>
+
+                    </div>
+                </div>
 
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-lg-5 col-sm-10 px-2 text-center'>
+                    <div className='col-lg-3 col-sm-10 px-2 text-center'>
                         <div className='row'>
                             <div className='col-12'>
                                 <label>
                                     Create Answers:
                                 </label>
                                 &nbsp;&nbsp;
-                                <IconButton variant='outlined' size="medium" color='secondary' onClick={() => setAnswers([...answers, ''])}>
+                                <IconButton variant='outlined' size="medium" color='secondary' onClick={() => setAnswers([...answers, {key: '', value: ''}])}>
                                     <AddIcon/>
                                 </IconButton>
                             </div>
                         </div>
                     </div>
-                    <div className={'col-lg-5 col-sm-10 px-2 text-center'}>
+                    <div className={'col-lg-7 col-sm-10 px-2 text-center'}>
                         {
                             answers.map((item, key) => (
-                                <FormControl fullWidth key={key} style={{paddingBottom: '5px'}}>
-                                    <InputLabel htmlFor="filled-adornment-password">Answer - {key + 1}</InputLabel>
-                                    <Input
-                                        type={'text'}
-                                        value={item}
+                                <div key={key} style={{display: 'flex', paddingBottom: '5px'}} >
+                                    <TextField
+                                        autoFocus
+                                        label={`${key + 1} - label`}
+                                        type="text"
+                                        value={item.key}
                                         onChange={(e) => {
-                                            onChangeAnswer(e.target.value, key)
+                                            onChangeAnswerKey(e.target.value, item);
                                             setCorrectAnswer('');
                                         }}
-                                        endAdornment={
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    aria-label="toggle password visibility"
-                                                    onClick={() => {
-                                                        onDeleteAnswer(key);
-                                                    }}
-                                                    edge="end"
-                                                    title={`Delete Answer - ${key + 1}`}
-                                                >
-                                                    <DeleteIcon/>
-                                                </IconButton>
-                                            </InputAdornment>
-                                        }
+                                        style={{width: '30%'}}
+                                        fullWidth
+                                        required
                                     />
-                                </FormControl>
+                                    &nbsp;&nbsp;
+                                    <FormControl fullWidth key={key} style={{paddingBottom: '5px'}} required={true}>
+                                        <InputLabel htmlFor="filled-adornment-password">{key + 1} - value</InputLabel>
+                                        <Input
+                                            type={'text'}
+                                            value={item.value}
+                                            onChange={(e) => {
+                                                onChangeAnswerValue(e.target.value, item);
+                                                setCorrectAnswer('');
+                                            }}
+                                            endAdornment={
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="toggle password visibility"
+                                                        onClick={() => {
+                                                            onDeleteAnswer(key);
+                                                        }}
+                                                        edge="end"
+                                                        title={`Delete Answer - ${key + 1}`}
+                                                    >
+                                                        <DeleteIcon/>
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            }
+                                        />
+                                    </FormControl>
+                                </div>
                             ))
                         }
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-5 col-sm-10 px-2'>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth required={true}>
                             <InputLabel id="demo-mutiple-checkbox-label">Correct Answer</InputLabel>
                             <Select
                                 labelId="demo-mutiple-checkbox-label"
                                 id="demo-mutiple-checkbox"
                                 value={correctAnswer}
-                                onChange={onChangeCorrectAnswer}
+                                onChange={onSelectCorrectAnswer}
                                 input={<Input />}
                                 MenuProps={MenuProps}
                             >
-                                {answers.map((name, key) => (
-                                    <MenuItem key={key} value={name}>
-                                        <ListItemText primary={name} />
+                                {answers.map((ansItem, key) => (
+                                    <MenuItem key={key} value={ansItem.key}>
+                                        <ListItemText primary={ansItem.key} />
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -606,13 +649,21 @@ const Problems = (props) => {
                                                                     <BtnCompetitionName name={value} selected={true}/>
                                                                 </TableCell>
                                                             )
-                                                        } if (column.id == 'answers') {
+                                                        } else if (column.id == 'question') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`}>
-                                                                    {value.join(', ')}
+                                                                    <Latex>{value.length > 200 ? value.slice(0, 197) + '...' : value}</Latex>
                                                                 </TableCell>
                                                             )
-                                                        } if (column.id == 'dateTime') {
+                                                        } else if (column.id == 'answers') {
+                                                            return (
+                                                                <TableCell key={`body_${subKey}`}>
+                                                                    {value.map(item => {
+                                                                        return item.key
+                                                                    }).join(', ')}
+                                                                </TableCell>
+                                                            )
+                                                        } else if (column.id == 'dateTime') {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`}>
                                                                     {new Date(value.seconds * 1000).toLocaleString()}
