@@ -18,7 +18,6 @@ import BtnGrade from "../../Components/Common/BtnGrade";
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 import {PictureAsPdf as PdfIcon} from '@material-ui/icons';
-import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import {PDFDownloadLink}  from "@react-pdf/renderer";
 
 import {
@@ -26,7 +25,7 @@ import {
     COLOR_DLG_BORDER_BLUE,
     COLOR_DLG_TITLE
 } from "../../Utils/ColorConstants";
-import {AddCircle as AddIcon, ExitToApp} from "@material-ui/icons";
+import {ExitToApp} from "@material-ui/icons";
 import Paper from "@material-ui/core/Paper";
 import BtnCompetitionNumberSelect from "../../Components/User/BtnCompetitionNumberSelect";
 import DlgDeleteConfirm from "../../Components/Admin/DlgDeleteConfirm";
@@ -139,8 +138,9 @@ const ViewList = (props) => {
                         ...compData
                     });
 
-                    tempUserCompList.sort(compareScore);
                 }
+                tempUserCompList.sort(compareScore);
+
                 // make no
                 tempUserCompList = tempUserCompList.map((item, key) => {
                     return {
@@ -163,6 +163,7 @@ const ViewList = (props) => {
     useEffect(() => {
         if (props.user) {
             selectedCompId = location.state.competitionId;
+            selectedCompName = location.state.competitionName;
             if (selectedCompId) {
                 onLoadUserCompetitions();
             }
@@ -215,7 +216,7 @@ const ViewList = (props) => {
                 </div>
                 <div className='col-lg-2 col-sm-12'>
                     <PDFDownloadLink
-                        document={<CompetitionPdf data={userCompetitionList} />}
+                        document={<CompetitionPdf data={userCompetitionList} header={scoredCompColumns} />}
                         fileName={selectedGrade + "-" + 'competition_result.pdf'}
                         style={{
                             textDecoration: "none",
@@ -224,8 +225,20 @@ const ViewList = (props) => {
                             backgroundColor: COLOR_ADMIN_MAIN,
                             borderRadius: '15px'
                         }}>
-                        <PdfIcon/>
-                        Download pdf
+                        {({blob, url, loading, error}) => {
+                            return (
+                                loading  ?
+                                    <>
+                                        <PdfIcon/>
+                                        &nbsp; Downloading
+                                    </>
+                                    :
+                                    <>
+                                        <PdfIcon/>
+                                        &nbsp; Download Pdf
+                                    </>
+                            );
+                        }}
                     </PDFDownloadLink>
                 </div>
             </div>

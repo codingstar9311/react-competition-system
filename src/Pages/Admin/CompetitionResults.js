@@ -74,10 +74,12 @@ const CompetitionResults = (props) => {
 
     window.onresize = function () {
 
-        let adminHeader = document.getElementById('admin-header').offsetHeight;
-        let tempHeight = window.innerHeight - adminHeader - 10;
+        if (document.getElementById('admin-header')) {
+            let adminHeader = document.getElementById('admin-header').offsetHeight;
+            let tempHeight = window.innerHeight - adminHeader - 10;
 
-        setMaxHeight(`${tempHeight}px`);
+            setMaxHeight(`${tempHeight}px`);
+        }
     };
 
     const [rows, setRows] = useState([]);

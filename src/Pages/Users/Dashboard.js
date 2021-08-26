@@ -246,11 +246,12 @@ const Dashboard = (props) => {
         props.history.push('/login');
     };
 
-    const onGotoViewList = (competition_id) => {
+    const onGotoViewList = (row) => {
         props.history.push({
             pathname: '/user/view-list',
             state: {
-                competitionId: competition_id,
+                competitionId: row.id,
+                competitionName: row.competitionName,
                 user: props.user
             }
         });
@@ -419,7 +420,7 @@ const Dashboard = (props) => {
                                                                 } else if (column.id == 'action') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`}>
-                                                                            <BtnDialogConfirm title='View List' onClick={() => onGotoViewList(row.id)}/>
+                                                                            <BtnDialogConfirm title='View List' onClick={() => onGotoViewList(row)}/>
                                                                         </TableCell>
                                                                     )
                                                                 }

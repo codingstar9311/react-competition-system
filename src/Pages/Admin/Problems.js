@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import 'react-pro-sidebar/dist/css/styles.css';
 
 import {TableContainer, Table, TableHead, TableBody, TableRow, makeStyles,
-    TableCell, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
+    TableCell, TextareaAutosize, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@material-ui/core";
 import {AddCircle as AddIcon} from "@material-ui/icons";
 import {toast, ToastContainer} from 'react-toastify';
@@ -28,8 +28,8 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
-import Yamde from "yamde";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
+var Latex = require('react-latex');
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -55,7 +55,7 @@ const Problems = (props) => {
     const columns = [
         { id: 'no', label: 'No', width: 60 },
         { id: 'problemName', label: 'Problem Name', minWidth: 170 },
-        { id: 'competitionName', label: 'Competition Name', minWidth: 170 },
+        { id: 'competitionName', label: 'Competition Name', minWidth: 170, align: 'center' },
         { id: 'question', label: 'Question Content', minWidth: 170 },
         { id: 'answers', label: 'Answers', minWidth: 170 },
         { id: 'correctAnswer', label: 'Correct Answer', minWidth: 170, textAlign: 'center'},
@@ -67,10 +67,12 @@ const Problems = (props) => {
 
     window.onresize = function () {
 
-        let adminHeader = document.getElementById('admin-header').offsetHeight;
-        let tempHeight = window.innerHeight - adminHeader - 10;
+        if (document.getElementById('admin-header')) {
+            let adminHeader = document.getElementById('admin-header').offsetHeight;
+            let tempHeight = window.innerHeight - adminHeader - 10;
 
-        setMaxHeight(`${tempHeight}px`);
+            setMaxHeight(`${tempHeight}px`);
+        }
     };
 
     const [answers, setAnswers] = useState(initAnswers);
@@ -366,15 +368,6 @@ const Problems = (props) => {
                     </div>
                 </div>
                 <div className='row py-2 align-items-center justify-content-center'>
-                    <div className='col-10'>
-                        Question Content
-                    </div>
-                    <div className='col-10'>
-                        <Yamde value={question} handler={setQuestion} theme="light" />
-                    </div>
-                </div>
-
-                <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-10 col-sm-10 px-2'>
                         <div className='row align-items-center'>
                             <div className='col-lg-4 col-sm-12 text-left'>
@@ -397,6 +390,29 @@ const Problems = (props) => {
 
                     </div>
                 </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-10'>
+                        Question Content
+                    </div>
+                    <div className='col-10'>
+                        <textarea
+                            required={true}
+                            onChange={(e) => setQuestion(e.target.value)} style={{width: '100%', resize: 'none', minHeight: '200px', maxHeight: '300px', overflow: 'auto'}}>
+                            {question}
+                        </textarea>
+                    </div>
+                </div>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-10' style={{paddingBottom: '10px'}}>
+                        Preview
+                    </div>
+                    <div className='col-10'>
+                        <pre className='latex-content' style={{minHeight: '100px', maxHeight: '400px', border: 'solid 2px #6f6f6f', padding: 4}}>
+                            <Latex>{question}</Latex>
+                        </pre>
+                    </div>
+                </div>
+
                 <div className='row py-2 align-items-center justify-content-center'>
                     <div className='col-lg-5 col-sm-10 px-2 text-center'>
                         <div className='row'>
