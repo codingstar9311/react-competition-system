@@ -150,6 +150,8 @@ const Competitions = (props) => {
             .get()
             .then(problemRef => {
                 let tempProblems = [];
+
+                let no = 1;
                 problemRef.docs.forEach(item => {
                     if (item.exists) {
                         let data = item.data();
@@ -161,9 +163,12 @@ const Competitions = (props) => {
                         }
 
                         tempProblems.push({
+                            displayValue: no + ' - ' + data.problemName,
                             id: item.id,
                             problemName: data.problemName
                         });
+
+                        no++;
                     }
                 });
 
@@ -598,7 +603,7 @@ const Competitions = (props) => {
                                     onRemove={onRemoveProblems}
                                     showArrow={true}
                                     closeOnSelect={false}
-                                    displayValue='problemName'
+                                    displayValue='displayValue'
                                     placeholder={'Select Problems'}
                                     showCheckbox={true}
                                     />
