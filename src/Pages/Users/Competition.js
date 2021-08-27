@@ -17,6 +17,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogActions from "@material-ui/core/DialogActions/DialogActions";
 import BtnDialogConfirm from "../../Components/Common/BtnDialogConfirm";
 import Dialog from "@material-ui/core/Dialog/Dialog";
+import Latex from "react-latex-next/dist";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -153,7 +154,7 @@ const Competition = (props) => {
     };
 
     const onBlur = () => {
-        setOpenWarningDlg(true);
+        // setOpenWarningDlg(true);
     };
 
     const onCloseWebpage = (event) => {
@@ -266,10 +267,10 @@ const Competition = (props) => {
 
     const onSelectAnswer = (selectedProblem, answer) => {
 
-        if (selectedProblem.selectedAnswer == answer) {
+        if (selectedProblem.selectedAnswer == answer.key) {
             delete selectedProblem.selectedAnswer;
         } else {
-            selectedProblem.selectedAnswer = answer;
+            selectedProblem.selectedAnswer = answer.key;
         }
 
         let user_id = props.user.id;
@@ -404,10 +405,23 @@ const Competition = (props) => {
     const renderView = ({index}) => (
         <>
             <h3>Question {index + 1}</h3>
-            <div className='row'>
-                <pre className='col-12' style={{height: '300px', overflow: 'auto'}}>
-                    {currentCompetition.problems[index] ? currentCompetition.problems[index].question : ''}
-                </pre>
+            <div className='row' style={{height: '300px', overflow: 'auto'}}>
+                <div className='col-12'>
+                    <pre className='latex-content'>
+                        <Latex>{currentCompetition.problems[index] ? currentCompetition.problems[index].question : ''}</Latex>
+                    </pre>
+                </div>
+                <div className='col-12' style={{ display: 'flex', flexWrap: 'warp', padding: '10px'}}>
+                    {
+                        currentCompetition.problems[index] && currentCompetition.problems[index].answers.map((ans, key) => {
+                            return (
+                                <div key={key} className='col-lg-2 py-2 col-sm-6'>
+                                    <Latex>{ans.key ? ans.key + ') ' + ans.value : ''}</Latex>
+                                </div>
+                            )
+                        })
+                    }
+                </div>
             </div>
             <div className='row py-2'>
                 <div className='col-12'>
@@ -416,7 +430,7 @@ const Competition = (props) => {
                         currentCompetition.problems[index] && currentCompetition.problems[index].answers.map((answer, key) => {
                             return (
                                 <div style={{padding: '10px'}} key={key}>
-                                    <BtnAnswerNumber selected={answer == currentCompetition.problems[index].selectedAnswer ? true : false} onClick={() => onSelectAnswer(currentCompetition.problems[index], answer)} title={answer}/>
+                                    <BtnAnswerNumber selected={answer.key == currentCompetition.problems[index].selectedAnswer ? true : false} onClick={() => onSelectAnswer(currentCompetition.problems[index], answer)} title={answer.key}/>
                                 </div>
                             )
                         })
