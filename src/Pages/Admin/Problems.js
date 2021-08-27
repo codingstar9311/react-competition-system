@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon} from "@material-ui/icons";
+import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, CloudUpload as UploadIcon} from "@material-ui/icons";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -311,6 +311,15 @@ const Problems = (props) => {
         });
     };
 
+    const onUploadCsv = (files) => {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            alert(reader.result);
+        };
+
+        reader.readAsText(files[0]);
+    };
+
     const onSelectCorrectAnswer = (event) => {
         setCorrectAnswer(event.target.value);
     };
@@ -604,6 +613,7 @@ const Problems = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
+                    <Button variant='contained' type='file' onClick={() => onAddProblem()} startIcon={<UploadIcon/>} style={{backgroundColor: COLOR_CANCEL_BUTTON, color: '#fff'}} className='float-right'>Upload Csv</Button>
                     <Button variant='contained' onClick={() => onAddProblem()} startIcon={<AddIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>Add</Button>
                 </div>
             </div>
