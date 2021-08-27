@@ -172,19 +172,19 @@ const Problems = (props) => {
                     if (item.exists) {
                         let data = item.data();
 
-                        let problemName = data.problemName ? data.problemName : '';
-                        let competitionName = data.competitionName ? data.competitionName : '';
-                        let question = data.question ? data.question : '';
+                        let tempProblemName = data.problemName ? data.problemName.toString() : '';
+                        let tempCompetitionName = data.competitionName ? data.competitionName : '';
+                        let tempQuestion = data.question ? data.question : '';
 
                         if (filterCompNames.length > 0) {
-                            if (!filterCompNames.includes(competitionName)) {
+                            if (!filterCompNames.includes(tempCompetitionName)) {
                                 return;
                             }
                         }
 
                         if (searchText !== '') {
-                            if (!problemName.includes(searchText) && !competitionName.includes(searchText)
-                                && !question.includes(searchText)) {
+                            if (!tempProblemName.includes(searchText) && !tempCompetitionName.includes(searchText)
+                                && !tempQuestion.includes(searchText)) {
                                 return;
                             }
                         }
