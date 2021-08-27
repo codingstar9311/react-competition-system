@@ -72,3 +72,7 @@ body {
 .latex-content-2 span {
   font-size: 14px !important;
 }
+
+.csv-input {
+  display: none !important;
+}

@@ -29,6 +29,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ListItemText from "@material-ui/core/ListItemText";
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
+import CSVReader from 'react-csv-reader';
 var Latex = require('react-latex');
 
 const useStyles = makeStyles((theme) => ({
@@ -46,6 +47,9 @@ const useStyles = makeStyles((theme) => ({
         paddingTop: '40px',
         marginBottom: '14%'
     },
+    fileInput: {
+        display: 'none'
+    }
 }));
 
 const initAnswers = [
@@ -116,6 +120,16 @@ const Problems = (props) => {
     useEffect(() => {
         onLoadProblems();
     }, [filterCompNames]);
+
+    const papaparseOptions = {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        transformHeader: header =>
+            header
+                .toLowerCase()
+                .replace(/\W/g, '_')
+    };
 
     const onChangeFilterCompNames = (val) => {
         let index = filterCompNames.indexOf(val);
@@ -341,6 +355,19 @@ const Problems = (props) => {
         setAnswers([...answers]);
 
         setCorrectAnswer('');
+    };
+
+    const onFileLoaded = (data, fileInfo) => {
+        alert('dddddddddd');
+        console.log('data--------');
+        console.log(data);
+
+        console.log('file info------------');
+        console.log(fileInfo);
+    };
+
+    const onUploadError = () => {
+        alert('fffffffffff');
     };
 
     const onChangeAnswerKey = (key, answer) => {
@@ -613,7 +640,22 @@ const Problems = (props) => {
                         />
                     </FormControl>
                     &nbsp; &nbsp;
-                    <Button variant='contained' type='file' onClick={() => onAddProblem()} startIcon={<UploadIcon/>} style={{backgroundColor: COLOR_CANCEL_BUTTON, color: '#fff'}} className='float-right'>Upload Csv</Button>
+                    <CSVReader
+                        cssClass="csv-reader-input"
+                        id='contained-button-file'
+                        onFileLoaded={onFileLoaded}
+                        onError={onUploadError}
+                        parserOptions={papaparseOptions}
+                        inputId="ObiWan"
+                        inputName="ObiWan"
+                        inputStyle={{color: 'red'}}
+                    />
+                    <label htmlFor="ObiWan" className='my-0'>
+                        <Button variant="contained" style={{backgroundColor: COLOR_CANCEL_BUTTON}} color="primary" component="span">
+                            <UploadIcon/>&nbsp;Upload
+                        </Button>
+                    </label>
+                    &nbsp;&nbsp;
                     <Button variant='contained' onClick={() => onAddProblem()} startIcon={<AddIcon/>} style={{backgroundColor: COLOR_ADMIN_MAIN, color: '#fff'}} className='float-right'>Add</Button>
                 </div>
             </div>
