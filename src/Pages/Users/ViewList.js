@@ -148,6 +148,8 @@ const ViewList = (props) => {
                         no: key + 1
                     }
                 });
+                console.log('user comp list');
+                console.log(tempUserCompList);
                 setUserCompetitionList([...tempUserCompList]);
 
                 props.onLoading(false);
@@ -217,7 +219,7 @@ const ViewList = (props) => {
                 <div className='col-lg-2 col-sm-12'>
                     <PDFDownloadLink
                         document={<CompetitionPdf data={userCompetitionList} header={scoredCompColumns} />}
-                        fileName={selectedGrade + "-" + 'competition_result.pdf'}
+                        fileName={selectedGrade + "-" + + selectedCompName + '_' + 'competition_result.pdf'}
                         style={{
                             textDecoration: "none",
                             padding: "10px",
@@ -289,7 +291,8 @@ const ViewList = (props) => {
                                                                             <span style={{color: row.id == props.user.id ? 'red' : '', }}>{value}</span>
                                                                         </TableCell>
                                                                     )
-                                                                } if (column.id == 'grade') {
+                                                                }
+                                                                else if (column.id == 'grade') {
                                                                     return (
                                                                         <TableCell key={`body_${subKey}`} align='center'>
                                                                             <BtnGrade number={value} selected={true}/>

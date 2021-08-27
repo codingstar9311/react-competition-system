@@ -72,7 +72,7 @@ const Login = (props) => {
 
                         if (userInfo.type == 'admin') {
                             localStorage.setItem('user_info', JSON.stringify(user));
-                            props.history.push('/admin/dashboard');
+                            props.history.push('/admin/users');
                         } else {
                             localStorage.setItem('user_info', JSON.stringify(user));
                             props.history.push('/user/dashboard');

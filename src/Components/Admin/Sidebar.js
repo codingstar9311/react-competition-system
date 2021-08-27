@@ -22,7 +22,7 @@ const Sidebar = (props) => {
             </SidebarHeader>
             <SidebarContent>
                 <Menu iconShape='square'>
-                    <MenuItem icon={<Dashboard />}>Dashboard <Link to={'/admin/dashboard'}/></MenuItem>
+                    {/*<MenuItem icon={<Dashboard />}>Dashboard <Link to={'/admin/dashboard'}/></MenuItem>*/}
                     <MenuItem icon={<People />}>Users <Link to={'/admin/users'}/></MenuItem>
                     <MenuItem icon={<ContactSupport />}>Problems <Link to={'/admin/problems'}/></MenuItem>
                     <MenuItem icon={<Business />}>Competition Informations <Link to={'/admin/competitions'}/></MenuItem>
