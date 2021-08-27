@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {firestore} from "../../firebase";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import IconButton from "@material-ui/core/IconButton";
-import {Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, CloudUpload as UploadIcon} from "@material-ui/icons";
+import {Delete as DeleteIcon, Edit as EditIcon, Visibility as ViewIcon , Search as SearchIcon, CloudUpload as UploadIcon} from "@material-ui/icons";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -30,7 +30,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import BtnCompetitionName from "../../Components/Common/BtnCompetitionName";
 import {getComparator, stableSort} from "../../Utils/CommonFunctions";
 import CSVReader from 'react-csv-reader';
-var Latex = require('react-latex');
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -60,6 +61,8 @@ const initAnswers = [
     { key: 'E', value: ''}
 ];
 
+let uploadData = [];
+
 const Problems = (props) => {
 
     const columns = [
@@ -87,6 +90,14 @@ const Problems = (props) => {
 
     const [answers, setAnswers] = useState(initAnswers);
     const [correctAnswer, setCorrectAnswer] = useState('');
+    const [compNameForUpload, setCompNameForUpload] = useState('');
+    const [uploadLoading, setUploadLoading] = useState(false);
+    const [openUploadDialog, setUploadDialog] = useState(false);
+
+    const [openViewDialog, setOpenViewDialog] = useState(false);
+
+    const [previewQuestion, setPreviewQuestion] = useState('');
+    const [previewAnswers, setPreviewAnswers] = useState([]);
 
     const [rows, setRows] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -129,6 +140,13 @@ const Problems = (props) => {
             header
                 .toLowerCase()
                 .replace(/\W/g, '_')
+    };
+
+    const onPreviewQuestion = (row) => {
+        setPreviewQuestion(row.question);
+        setPreviewAnswers([...row.answers]);
+
+        setOpenViewDialog(true);
     };
 
     const onChangeFilterCompNames = (val) => {
@@ -325,15 +343,6 @@ const Problems = (props) => {
         });
     };
 
-    const onUploadCsv = (files) => {
-        let reader = new FileReader();
-        reader.onload = function (e) {
-            alert(reader.result);
-        };
-
-        reader.readAsText(files[0]);
-    };
-
     const onSelectCorrectAnswer = (event) => {
         setCorrectAnswer(event.target.value);
     };
@@ -357,17 +366,82 @@ const Problems = (props) => {
         setCorrectAnswer('');
     };
 
-    const onFileLoaded = (data, fileInfo) => {
-        alert('dddddddddd');
-        console.log('data--------');
-        console.log(data);
+    const onFileUpload = async (data) => {
 
-        console.log('file info------------');
-        console.log(fileInfo);
+        if (!compNameForUpload) {
+            toast.warning('please select competition name.');
+            return;
+        }
+
+        setUploadLoading(true);
+
+        for (let i = 0; i < data.length; i++) {
+            let tempData = data[i];
+            let keys = Object.keys(tempData);
+
+            if (!keys.includes('correct_answer') && !keys.includes('question')) {
+                continue;
+            }
+
+            let insCorrectAnswer = tempData['correct_answer'];
+            let insQuestion = tempData['question'];
+            let insQuestionName = tempData['question_name'] ? tempData['question_name'] : 'problem ' + i;
+
+            let tempAnswers = keys.filter(item => {
+                if (item.includes('answer_')) {
+                    return true;
+                }
+                return false;
+            });
+
+            let answerCount = 0;
+
+            let insAnswers = [];
+
+            for (let j = 0; j < tempAnswers.length; j++) {
+                let answerKey = tempAnswers[j];
+
+                if (tempData[answerKey]) {
+                    let tempArr = answerKey.split('_');
+                    if (tempArr.length > 1) {
+                        insAnswers.push({
+                            key: tempArr[1].toUpperCase(),
+                            value: tempData[answerKey]
+                        });
+                        answerCount++;
+                    }
+                }
+            }
+
+            if (answerCount < tempAnswers.length - 1) {
+                continue;
+            }
+
+            // save
+            await firestore.collection('problems').add({
+                problemName: insQuestionName,
+                competitionName: compNameForUpload,
+                answers: insAnswers,
+                dateTime: new Date(),
+                correctAnswer: insCorrectAnswer,
+                question: insQuestion
+            })
+        }
+
+        setUploadLoading(false);
+        setUploadDialog(false);
+
+        onLoadProblems();
+    };
+
+    const onFileLoaded = async (data, fileInfo) => {
+
+        uploadData = [...data];
+
+        setUploadDialog(true);
     };
 
     const onUploadError = () => {
-        alert('fffffffffff');
     };
 
     const onChangeAnswerKey = (key, answer) => {
@@ -379,7 +453,7 @@ const Problems = (props) => {
         setAnswers([...answers]);
     };
 
-    const dialog = (<Dialog open={openDialog}
+    const addDialog = (<Dialog open={openDialog}
                             fullWidth={true}
                             maxWidth={'md'}
                             classes={{
@@ -569,6 +643,90 @@ const Problems = (props) => {
         </form>
     </Dialog>);
 
+    const viewDialog = (<Dialog open={openViewDialog}
+                               fullWidth={true}
+                               maxWidth={'md'}
+                               classes={{
+                                   paper: classes.dlgBlueBorder
+                               }}
+                               scroll="body"
+                               onClose={(event, reason) => {
+                                   if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                                       return;
+                                   }
+                                   setOpenViewDialog()
+                               }}
+                               aria-labelledby="form-dialog-title">
+        <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>Question View</DialogTitle>
+        <DialogContent>
+            <div className='row py-2 align-items-center justify-content-center'>
+                <div className='col-10' style={{border: 'solid 2px #6f6f6f'}}>
+                        <pre className='latex-content' style={{padding: 4}}>
+                            <Latex>{previewQuestion}</Latex>
+                        </pre>
+                    <div style={{ display: 'flex', flexWrap: 'warp', padding: '10px'}}
+                         className='row mx-0'>
+                        {
+                            previewAnswers.map((ans, key) => {
+                                return (
+                                    <div key={key} className='col-lg-2 py-2 col-sm-6'>
+                                        <Latex>{ans.key ? ans.key + ') ' + ans.value : ''}</Latex>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                </div>
+            </div>
+        </DialogContent>
+        <DialogActions className='justify-content-center py-3'>
+            <BtnDialogConfirm disabled={loading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setOpenViewDialog(false)} title={'Close'}/>
+        </DialogActions>
+    </Dialog>);
+
+    const uploadDialog = (<Dialog open={openUploadDialog}
+                               fullWidth={true}
+                               maxWidth={'md'}
+                               classes={{
+                                   paper: classes.dlgBlueBorder
+                               }}
+                               scroll="body"
+                               onClose={(event, reason) => {
+                                   if (reason == 'backdropClick' || reason == 'escapeKeyDown') {
+                                       return;
+                                   }
+                                   setUploadDialog(false);
+                               }}
+                               aria-labelledby="form-dialog-title">
+            <DialogTitle className='text-center' style={{color: COLOR_DLG_TITLE}}>Please select competition name for upload.</DialogTitle>
+            <DialogContent>
+                <div className='row py-2 align-items-center justify-content-center'>
+                    <div className='col-lg-10 col-sm-10 px-2'>
+                        <div className='row align-items-center'>
+                            <div className='col-lg-4 col-sm-12 text-left'>
+                                Competition Name
+                            </div>
+                            <div className='col-lg-8 col-sm-12 justify-content-around' style={{display: "flex"}}>
+                                {
+                                    ['MST', 'MSO', 'HST', 'HSO'].map((val, key) => {
+                                        return (
+                                            <div className='px-2' key={key}>
+                                                <BtnCompetitionName name={val} onClick={() => setCompNameForUpload(val)} selected={val === compNameForUpload}/>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+            <DialogActions className='justify-content-center py-3'>
+                <BtnDialogConfirm disabled={uploadLoading} backgroundColor={COLOR_CANCEL_BUTTON} width={'100px'} type='button' onClick={() => setUploadDialog(false)} title={'Cancel'}/>
+                <BtnDialogConfirm disabled={uploadLoading} onClick={() => onFileUpload(uploadData)} type='type' width={'100px'} title='Upload'/>
+            </DialogActions>
+    </Dialog>);
+
     return (
         <div>
             <ToastContainer
@@ -576,7 +734,13 @@ const Problems = (props) => {
                 autoClose={2000}
                 traggle/>
             {
-                dialog
+                addDialog
+            }
+            {
+                uploadDialog
+            }
+            {
+                viewDialog
             }
             <DlgDeleteConfirm title="Do you really want to delete?" open={openDeleteDialog} disabled={deleteLoading} onNo={() => {setOpenDeleteDialog(false)}} onYes={() => onDeleteProblem(selectedId)}/>
             <div className='row justify-content-center align-items-center py-2' id='admin-header'>
@@ -643,6 +807,7 @@ const Problems = (props) => {
                     <CSVReader
                         cssClass="csv-reader-input"
                         id='contained-button-file'
+                        onClick
                         onFileLoaded={onFileLoaded}
                         onError={onUploadError}
                         parserOptions={papaparseOptions}
@@ -726,6 +891,13 @@ const Problems = (props) => {
                                                             return (
                                                                 <TableCell key={`body_${subKey}`}
                                                                            className='text-right'>
+                                                                    <IconButton color='primary'
+                                                                                size='small'
+                                                                                title="View Question Info"
+                                                                                onClick={() => onPreviewQuestion(row)}>
+                                                                        <ViewIcon/>
+                                                                    </IconButton>
+                                                                    &nbsp;
                                                                     <IconButton color='primary'
                                                                                 size='small'
                                                                                 onClick={() => onEditProblem(row)}>

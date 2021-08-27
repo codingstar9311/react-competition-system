@@ -12,7 +12,7 @@ import Competition from "../Users/Competition";
 const AdminLayout = (props) => {
 
     const [fullLoading, setFullLoading] = useState(false);
-
+    const [fullLoadingLabel, setFullLoadingLabel] = useState('loading');
     useEffect(() => {
         let userInfo = localStorage.getItem('user_info');
 
@@ -33,12 +33,18 @@ const AdminLayout = (props) => {
     return (
         <>
             <Sidebar history={props.history}/>
-            <LoadingOverlay active={fullLoading} className='full-loading' spinner text='loading'>
+            <LoadingOverlay active={fullLoading} className='full-loading' spinner text={fullLoadingLabel}>
                 <div className='container-fluid py-1 overflow-auto'>
                     <Switch>
                         <Route path={'/admin/dashboard'} render={(props) => <Dashboard {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
                         <Route path={'/admin/users'} render={(props) => <Users {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
-                        <Route path={'/admin/problems'} render={(props) => <Problems {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
+                        <Route path={'/admin/problems'} render={(props) => <Problems {...props} onLoading={(val, label) => {
+                            if (label) {
+                                setFullLoadingLabel(label);
+                            }
+
+                            setFullLoading(val)
+                        }}/>}/>
                         <Route path={'/admin/competitions'} render={(props) => <Competitions {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
                         <Route path={'/admin/competition-results'} render={(props) => <CompetitionResults {...props} onLoading={(val) => {setFullLoading(val)}}/>}/>
                     </Switch>
